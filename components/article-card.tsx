@@ -43,8 +43,10 @@ export function ArticleCard({
       {/* title */}
       <div className={`flex flex-1 flex-col px-5 ${large ? "py-7" : "py-6"}`}>
         <h3
-          className={`display text-fg transition-colors group-hover:text-[var(--dh)] ${
-            large ? "text-4xl sm:text-5xl" : "text-2xl sm:text-[1.7rem]"
+          className={`font-head font-bold tracking-[-0.02em] text-fg transition-colors group-hover:text-[var(--dh)] ${
+            large
+              ? "text-3xl leading-[1.05] sm:text-[2.7rem] sm:leading-[1]"
+              : "text-[1.4rem] leading-[1.12] sm:text-[1.55rem]"
           }`}
         >
           {article.title}

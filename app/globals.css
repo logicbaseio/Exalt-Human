@@ -32,6 +32,7 @@
 
   /* fonts (wired in layout.tsx) */
   --font-display: var(--font-anton);
+  --font-head: var(--font-grotesk);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
