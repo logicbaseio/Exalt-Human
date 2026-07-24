@@ -34,64 +34,63 @@ export default async function TopicPage({
   const others = TOPICS.filter((t) => t.slug !== topic.slug);
 
   return (
-    <div>
-      {/* header */}
-      <header className="relative overflow-hidden border-b border-line">
-        <div className="pointer-events-none absolute inset-0 grid-bg opacity-70" />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-50"
-          style={{
-            background: `radial-gradient(50% 100% at 50% 0%, ${topic.tint}, transparent 70%)`,
-          }}
-        />
-        <div className="relative mx-auto max-w-6xl px-5 pb-14 pt-16 sm:px-8 sm:pt-24">
+    <div className="mx-auto max-w-[1400px] border-x border-line">
+      {/* masthead */}
+      <header className="relative overflow-hidden border-b border-line px-5 pb-12 pt-14 sm:px-10 sm:pt-20">
+        <span
+          aria-hidden
+          className="display pointer-events-none absolute -right-6 -top-10 select-none text-[24vw] leading-none opacity-[0.06]"
+          style={{ color: topic.color }}
+        >
+          {topic.name}
+        </span>
+        <div className="relative">
           <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl border"
+            className="flex h-16 w-16 items-center justify-center border-2"
             style={{ borderColor: topic.color, color: topic.color }}
           >
             <TopicIcon slug={topic.slug} color={topic.color} size={34} />
           </div>
-          <h1 className="display mt-6 text-6xl text-fg sm:text-7xl">
+          <h1 className="display mt-7 text-7xl text-fg sm:text-9xl">
             {topic.name}
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-fg-dim">
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-fg-dim">
             {topic.intro}
           </p>
-          <p className="eyebrow mt-6 text-fg-faint">
-            {articles.length} article{articles.length === 1 ? "" : "s"}
+          <p className="eyebrow mt-7 text-fg-faint">
+            {String(articles.length).padStart(2, "0")} article
+            {articles.length === 1 ? "" : "s"}
           </p>
         </div>
       </header>
 
       {/* articles */}
-      <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
-        {articles.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line bg-surface p-12 text-center">
-            <p className="text-fg-dim">
-              No articles in this domain yet. Check back soon.
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {articles.map((a) => (
-              <ArticleCard key={a.id} article={a} />
-            ))}
-          </div>
-        )}
-      </section>
+      {articles.length === 0 ? (
+        <div className="px-5 py-24 text-center sm:px-10">
+          <p className="display text-3xl text-fg-faint">Nothing here yet</p>
+          <p className="mt-3 text-fg-dim">Check back soon.</p>
+        </div>
+      ) : (
+        <div className="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-3">
+          {articles.map((a, i) => (
+            <ArticleCard key={a.id} article={a} index={i + 1} />
+          ))}
+        </div>
+      )}
 
       {/* other domains */}
-      <section className="mx-auto max-w-6xl px-5 pb-12 sm:px-8">
-        <p className="eyebrow text-fg-faint">Other domains</p>
-        <div className="mt-5 flex flex-wrap gap-2">
+      <section className="border-t border-line px-5 py-10 sm:px-10">
+        <span className="eyebrow text-fg-faint">Other domains</span>
+        <div className="mt-5 flex flex-wrap gap-px bg-line">
           {others.map((t) => (
             <Link
               key={t.slug}
               href={`/topics/${t.slug}`}
-              className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-medium text-fg-dim transition-colors hover:border-white/20 hover:text-fg"
+              className="trans flex items-center gap-2 bg-ink px-4 py-2.5 text-[13px] font-bold uppercase tracking-wide text-fg-dim hover:bg-[var(--dh)] hover:text-ink"
+              style={{ ["--dh" as string]: t.color }}
             >
               <span
-                className="h-1.5 w-1.5 rounded-full"
+                className="h-2 w-2 group-hover:bg-ink"
                 style={{ background: t.color }}
               />
               {t.name}

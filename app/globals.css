@@ -1,38 +1,41 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   EXALT HUMAN — design tokens
-   Bold performance & energy. Near-black canvas, electric "volt" accent,
-   color-coded knowledge domains.
+   EXALT HUMAN — editorial / anatomical-specimen system
+   Near-black broadsheet, electric volt accent, Anton display type on every
+   headline, sharp 0-radius geometry, hairline structure, film grain.
    ========================================================================== */
 @theme {
   /* surfaces */
   --color-ink: #08090b;
-  --color-ink-2: #0c0e11;
-  --color-surface: #101318;
-  --color-surface-2: #171b22;
-  --color-line: #23272f;
+  --color-ink-2: #0b0d10;
+  --color-surface: #101216;
+  --color-surface-2: #16191f;
+  --color-line: #262a31;
+  --color-line-soft: #191c22;
 
   /* type */
-  --color-fg: #f5f6f8;
-  --color-fg-dim: #9aa1ad;
-  --color-fg-faint: #626977;
+  --color-fg: #f6f7f9;
+  --color-fg-dim: #98a0ab;
+  --color-fg-faint: #5c636e;
 
   /* brand accent — volt */
-  --color-volt: #c8ff3d;
+  --color-volt: #ccff33;
   --color-volt-deep: #a6e000;
 
   /* knowledge-domain hues */
-  --color-body: #c8ff3d;
-  --color-mind: #4fd8ff;
+  --color-body: #ccff33;
+  --color-mind: #56d8ff;
   --color-psyche: #b696ff;
-  --color-health: #3ff0a0;
+  --color-health: #43f0a0;
   --color-elevate: #ffc24b;
 
   /* fonts (wired in layout.tsx) */
   --font-display: var(--font-anton);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --radius: 0px;
 }
 
 @layer base {
@@ -49,116 +52,136 @@
     text-rendering: optimizeLegibility;
   }
 
-  ::selection {
-    background: var(--color-volt);
-    color: #07120a;
+  /* sharp geometry everywhere — no soft AI corners */
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  img,
+  video,
+  figure {
+    border-radius: 0;
   }
 
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: var(--color-ink);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #2a2f38;
-    border-radius: 999px;
-    border: 2px solid var(--color-ink);
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #3a414d;
+  ::selection {
+    background: var(--color-volt);
+    color: #0a1200;
   }
 
   * {
     border-color: var(--color-line);
   }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-ink);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2c313a;
+    border: 3px solid var(--color-ink);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3c424d;
+  }
 }
 
-/* ------- reusable primitives ------- */
+/* -------------------------------------------------------------------- grain */
+/* fixed film-grain overlay — replaces the AI grid pattern */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* -------------------------------------------------------------- typography */
 
 /* mono eyebrow / label */
 .eyebrow {
   font-family: var(--font-mono), monospace;
   text-transform: uppercase;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.24em;
   font-size: 0.6875rem;
   font-weight: 500;
 }
 
-/* display headline face (Anton is single-weight) */
+/* Anton display face — used on EVERY headline */
 .display {
   font-family: var(--font-display), sans-serif;
   font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 0.92;
+  letter-spacing: -0.005em;
+  line-height: 0.9;
 }
 
-/* faint blueprint grid behind heroes */
-.grid-bg {
-  background-image: linear-gradient(
-      to right,
-      rgba(255, 255, 255, 0.035) 1px,
-      transparent 1px
-    ),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(
-    ellipse 80% 60% at 50% 0%,
-    #000 40%,
-    transparent 100%
-  );
+/* stroked/outline display word */
+.display-outline {
+  -webkit-text-stroke: 1.5px var(--color-fg);
+  color: transparent;
 }
 
-/* volt radial glow */
-.glow-volt {
-  background: radial-gradient(
-    50% 50% at 50% 0%,
-    color-mix(in oklab, var(--color-volt) 22%, transparent) 0%,
-    transparent 70%
-  );
-}
-
-/* card hover */
-.lift {
-  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.35s ease, background-color 0.35s ease;
-}
-.lift:hover {
-  transform: translateY(-4px);
-}
-
-/* pen-trace animation for hero SVG */
-@keyframes trace {
+/* ----------------------------------------------------------------- marquee */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
   to {
-    stroke-dashoffset: 0;
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 34s linear infinite;
+}
+.marquee-fast {
+  animation-duration: 22s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    animation: none;
   }
 }
 
-/* ------- article body (markdown) ------- */
+/* ------------------------------------------------------------------ motion */
+.trans {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ------------------------------------------------------- article body copy */
 .article-body {
-  font-size: 1.075rem;
-  line-height: 1.78;
-  color: #d9dce2;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: #d6dae1;
 }
 .article-body > * + * {
-  margin-top: 1.35em;
+  margin-top: 1.4em;
 }
 .article-body h2 {
-  font-family: var(--font-sans), sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  font-size: 1.75rem;
-  line-height: 1.15;
-  margin-top: 2.4em;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 0.95;
+  font-size: 2rem;
+  margin-top: 2.5em;
   color: #fff;
 }
 .article-body h3 {
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  font-size: 1.3rem;
-  margin-top: 1.9em;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-size: 1.4rem;
+  margin-top: 2em;
   color: #fff;
 }
 .article-body a {
@@ -173,7 +196,7 @@
 }
 .article-body ul,
 .article-body ol {
-  padding-left: 1.35em;
+  padding-left: 1.4em;
 }
 .article-body ul {
   list-style: none;
@@ -184,53 +207,66 @@
 .article-body ul > li::before {
   content: "";
   position: absolute;
-  left: -1.15em;
-  top: 0.72em;
-  width: 6px;
-  height: 6px;
-  border-radius: 2px;
+  left: -1.25em;
+  top: 0.68em;
+  width: 8px;
+  height: 8px;
   background: var(--color-volt);
 }
 .article-body ol {
-  list-style: decimal;
+  list-style: none;
+  counter-reset: li;
+}
+.article-body ol > li {
+  position: relative;
+  counter-increment: li;
+}
+.article-body ol > li::before {
+  content: counter(li, decimal-leading-zero);
+  position: absolute;
+  left: -1.9em;
+  top: 0.05em;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8em;
+  color: var(--color-volt);
 }
 .article-body li + li {
-  margin-top: 0.5em;
+  margin-top: 0.55em;
 }
 .article-body blockquote {
-  border-left: 2px solid var(--color-volt);
-  padding: 0.2em 0 0.2em 1.3em;
+  border-left: 3px solid var(--color-volt);
+  padding: 0.1em 0 0.1em 1.4em;
   color: #fff;
-  font-size: 1.25rem;
-  line-height: 1.5;
-  font-weight: 500;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 1.05;
+  font-size: 1.7rem;
 }
 .article-body code {
   font-family: var(--font-mono), monospace;
   font-size: 0.9em;
   background: var(--color-surface-2);
   padding: 0.15em 0.4em;
-  border-radius: 5px;
   color: var(--color-volt);
 }
 .article-body pre {
   background: var(--color-ink-2);
   border: 1px solid var(--color-line);
-  border-radius: 14px;
   padding: 1.2em 1.4em;
   overflow-x: auto;
 }
 .article-body pre code {
   background: none;
   padding: 0;
-  color: #d9dce2;
+  color: #d6dae1;
 }
 .article-body hr {
   border: 0;
   border-top: 1px solid var(--color-line);
-  margin: 2.6em 0;
+  margin: 2.8em 0;
 }
 .article-body img {
-  border-radius: 16px;
   border: 1px solid var(--color-line);
 }

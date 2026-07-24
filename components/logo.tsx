@@ -2,7 +2,7 @@ export function Logo({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       {/* mark: an upward chevron/pulse — "elevation" */}
-      <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-lg bg-volt">
+      <span className="relative inline-flex h-8 w-8 items-center justify-center bg-volt">
         <svg
           width="18"
           height="18"
