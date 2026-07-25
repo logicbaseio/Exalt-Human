@@ -5,12 +5,17 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import {
   CSSProperties,
-  FormEvent,
   KeyboardEvent,
   useEffect,
   useRef,
   useState,
 } from "react";
+import OptimizationDispatch from "./components/OptimizationDispatch";
+
+const heroFrames = Array.from(
+  { length: 17 },
+  (_, index) => `/hero-sequence/frame-${String(index).padStart(2, "0")}.webp`,
+);
 
 const systems = [
   {
@@ -118,80 +123,28 @@ const articles = [
 
 export default function Home() {
   const [activeSystem, setActiveSystem] = useState(0);
-  const [subscribed, setSubscribed] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const heroStickyRef = useRef<HTMLDivElement>(null);
+  const heroFrameRef = useRef<HTMLImageElement>(null);
+  const atlasStageRef = useRef<HTMLDivElement>(null);
   const atlasTabs = useRef<Array<HTMLButtonElement | null>>([]);
   const currentSystem = systems[activeSystem];
 
   useEffect(() => {
     const hero = heroRef.current;
-    const sticky = heroStickyRef.current;
-    if (!hero || !sticky) return;
+    const frame = heroFrameRef.current;
+    if (!hero || !frame) return;
 
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (reduceMotion) {
-      hero.classList.add("is-active");
-      return;
-    }
-
-    let animationFrame = 0;
-
-    const moveImage = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      cancelAnimationFrame(animationFrame);
-      animationFrame = requestAnimationFrame(() => {
-        const bounds = sticky.getBoundingClientRect();
-        const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-        const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-        hero.style.setProperty("--hero-x", `${x * 9}px`);
-        hero.style.setProperty("--hero-y", `${y * 6}px`);
-      });
-    };
-
-    const resetImage = () => {
-      hero.style.setProperty("--hero-x", "0px");
-      hero.style.setProperty("--hero-y", "0px");
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => hero.classList.toggle("is-active", entry.isIntersecting),
-      { threshold: 0.15 },
-    );
-
-    observer.observe(hero);
-    sticky.addEventListener("pointermove", moveImage);
-    sticky.addEventListener("pointerleave", resetImage);
-
-    return () => {
-      cancelAnimationFrame(animationFrame);
-      observer.disconnect();
-      sticky.removeEventListener("pointermove", moveImage);
-      sticky.removeEventListener("pointerleave", resetImage);
-    };
-  }, []);
-
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    const sideBody = hero.querySelector<HTMLElement>(".hero-body-side");
-    const frontBody = hero.querySelector<HTMLElement>(".hero-body-front");
+    const imageMotion = hero.querySelector<HTMLElement>(".hero-image-motion");
     const messageOne = hero.querySelector<HTMLElement>(".hero-message-one");
     const messageTwo = hero.querySelector<HTMLElement>(".hero-message-two");
     const messageThree = hero.querySelector<HTMLElement>(".hero-message-three");
     const scrollProgress = hero.querySelector<HTMLElement>(
       ".hero-scroll-progress i",
     );
-    const signalLayers = hero.querySelectorAll<HTMLElement>(
-      ".hero-organ-glow, .hero-neural-path",
-    );
 
     if (
-      !sideBody ||
-      !frontBody ||
+      !imageMotion ||
       !messageOne ||
       !messageTwo ||
       !messageThree ||
@@ -201,194 +154,152 @@ export default function Home() {
     }
 
     gsap.registerPlugin(ScrollTrigger);
-    const media = gsap.matchMedia();
-
-    media.add(
-      {
-        desktop: "(min-width: 821px)",
-        mobile: "(max-width: 820px)",
-        reduce: "(prefers-reduced-motion: reduce)",
-      },
-      (context) => {
-        const conditions = context.conditions as {
-          desktop?: boolean;
-          mobile?: boolean;
-          reduce?: boolean;
-        };
-        const desktop = Boolean(conditions.desktop);
-        const reduce = Boolean(conditions.reduce);
-
-        const scope = gsap.context(() => {
-          if (reduce) {
-            gsap.set(sideBody, { autoAlpha: 0 });
-            gsap.set(frontBody, {
-              autoAlpha: 1,
-              clearProps: "transform,filter",
-            });
-            gsap.set([messageOne, messageTwo], { autoAlpha: 0 });
-            gsap.set(messageThree, { autoAlpha: 1, yPercent: 0 });
-            gsap.set(scrollProgress, { scaleX: 1 });
-            return;
-          }
-
-          gsap.set(sideBody, {
-            autoAlpha: 1,
-            x: desktop ? "3vw" : "1vw",
-            scale: desktop ? 1.045 : 1.02,
-            rotationY: 0,
-          });
-          gsap.set(frontBody, {
-            autoAlpha: 0,
-            x: desktop ? "1.5vw" : 0,
-            scale: 1.025,
-            rotationY: desktop ? -8 : 0,
-          });
-          gsap.set([messageOne, messageTwo, messageThree], {
-            autoAlpha: 0,
-            yPercent: desktop ? 14 : 8,
-          });
-          gsap.set(messageOne, { autoAlpha: 1, yPercent: 0 });
-          gsap.set(scrollProgress, {
-            scaleX: 0,
-            transformOrigin: "left center",
-          });
-
-          const timeline = gsap.timeline({
-            defaults: { ease: "none" },
-            scrollTrigger: {
-              trigger: hero,
-              start: "top top",
-              end: "bottom bottom",
-              scrub: desktop ? 0.7 : 0.35,
-              invalidateOnRefresh: true,
-              fastScrollEnd: true,
-            },
-          });
-
-          timeline.to(
-            sideBody,
-            {
-              x: 0,
-              scale: 1,
-              duration: 0.08,
-              ease: "power2.out",
-            },
-            0,
-          );
-          timeline.to(
-            scrollProgress,
-            { scaleX: 1, duration: 1 },
-            0,
-          );
-          timeline.to(
-            messageOne,
-            {
-              autoAlpha: 0,
-              yPercent: desktop ? -12 : -8,
-              duration: 0.12,
-              ease: "power2.inOut",
-            },
-            0.24,
-          );
-          timeline.to(
-            sideBody,
-            {
-              autoAlpha: 0,
-              rotationY: desktop ? 13 : 0,
-              x: desktop ? "-2vw" : 0,
-              scale: 1.018,
-              filter: desktop ? "blur(2px)" : "blur(0px)",
-              duration: 0.22,
-              ease: "power1.inOut",
-            },
-            0.3,
-          );
-          timeline.to(
-            frontBody,
-            {
-              autoAlpha: 1,
-              rotationY: 0,
-              x: 0,
-              scale: 1,
-              filter: "blur(0px)",
-              duration: 0.22,
-              ease: "power1.inOut",
-            },
-            0.3,
-          );
-          timeline.to(
-            signalLayers,
-            { autoAlpha: 0, duration: 0.16 },
-            0.3,
-          );
-          timeline.to(
-            messageTwo,
-            {
-              autoAlpha: 1,
-              yPercent: 0,
-              duration: 0.07,
-              ease: "power2.out",
-            },
-            0.4,
-          );
-          timeline.to(
-            messageTwo,
-            {
-              autoAlpha: 0,
-              yPercent: desktop ? -12 : -8,
-              duration: 0.09,
-              ease: "power2.inOut",
-            },
-            0.63,
-          );
-          timeline.to(
-            frontBody,
-            {
-              scale: desktop ? 1.018 : 1.008,
-              duration: 0.15,
-              ease: "power1.inOut",
-            },
-            0.63,
-          );
-          timeline.to(
-            messageThree,
-            {
-              autoAlpha: 1,
-              yPercent: 0,
-              duration: 0.09,
-              ease: "power2.out",
-            },
-            0.7,
-          );
-          timeline.to(
-            [messageThree, frontBody],
-            {
-              y: desktop ? "-3vh" : "-1.5vh",
-              duration: 0.07,
-              ease: "power1.in",
-            },
-            0.93,
-          );
-        }, hero);
-
-        return () => scope.revert();
-      },
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const preload = heroFrames.map(
+      (source) =>
+        new Promise<void>((resolve) => {
+          const image = new window.Image();
+          image.onload = () => resolve();
+          image.onerror = () => resolve();
+          image.src = source;
+        }),
     );
 
-    const images = Array.from(
-      hero.querySelectorAll<HTMLImageElement>(".hero-body-layer img"),
-    );
-    Promise.all(images.map((image) => image.decode().catch(() => undefined))).then(
-      () => ScrollTrigger.refresh(),
-    );
+    const scope = gsap.context(() => {
+      const setMessage = (element: HTMLElement, opacity: number) => {
+        gsap.set(element, {
+          opacity,
+          visibility: opacity > 0.015 ? "visible" : "hidden",
+        });
+      };
+      const fadeIn = (progress: number, start: number, end: number) =>
+        gsap.utils.clamp(0, 1, (progress - start) / (end - start));
+      const fadeOut = (progress: number, start: number, end: number) =>
+        1 - fadeIn(progress, start, end);
 
-    return () => media.revert();
+      gsap.set(scrollProgress, {
+        scaleX: 0,
+        transformOrigin: "left center",
+      });
+
+      if (reduceMotion) {
+        frame.src = heroFrames.at(-1) ?? heroFrames[0];
+        setMessage(messageOne, 0);
+        setMessage(messageTwo, 0);
+        setMessage(messageThree, 1);
+        gsap.set(scrollProgress, { scaleX: 1 });
+        return;
+      }
+
+      let currentFrame = -1;
+      const render = (progress: number) => {
+        const nextFrame = Math.round(progress * (heroFrames.length - 1));
+        if (nextFrame !== currentFrame) {
+          frame.src = heroFrames[nextFrame];
+          currentFrame = nextFrame;
+        }
+
+        gsap.set(imageMotion, {
+          scale: 1 + progress * 0.085,
+          xPercent: progress * -1.7,
+          yPercent: progress * -0.8,
+        });
+        gsap.set(scrollProgress, { scaleX: progress });
+
+        setMessage(messageOne, fadeOut(progress, 0.24, 0.33));
+        setMessage(
+          messageTwo,
+          Math.min(
+            fadeIn(progress, 0.28, 0.36),
+            fadeOut(progress, 0.58, 0.67),
+          ),
+        );
+        setMessage(messageThree, fadeIn(progress, 0.63, 0.72));
+      };
+
+      render(0);
+      ScrollTrigger.create({
+        trigger: hero,
+        start: "top top",
+        end: "bottom bottom",
+        invalidateOnRefresh: true,
+        onUpdate: (self) => render(self.progress),
+      });
+    }, hero);
+
+    Promise.all(preload).then(() => ScrollTrigger.refresh());
+
+    return () => scope.revert();
   }, []);
 
-  function handleSubscribe(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubscribed(true);
-  }
+  useEffect(() => {
+    const stage = atlasStageRef.current;
+    if (!stage) return;
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduceMotion) return;
+
+    const scope = gsap.context(() => {
+      const figure = stage.querySelector(".atlas-figure img");
+      const aura = stage.querySelector(".atlas-aura");
+      const callouts = stage.querySelectorAll(".atlas-callout");
+      const panelCopy = stage.querySelectorAll(
+        ".atlas-panel-meta, .atlas-panel-copy, .atlas-fields a",
+      );
+      if (!figure) return;
+
+      gsap.killTweensOf([figure, aura, callouts, panelCopy]);
+      gsap.fromTo(
+        figure,
+        {
+          scale: 0.975,
+          rotationY: activeSystem % 2 === 0 ? -3.5 : 3.5,
+          y: 10,
+        },
+        {
+          scale: 1.025,
+          rotationY: 0,
+          y: 0,
+          duration: 0.72,
+          ease: "power3.out",
+          transformOrigin: "50% 34%",
+        },
+      );
+      gsap.fromTo(
+        aura,
+        { opacity: 0, scale: 0.68 },
+        { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" },
+      );
+      gsap.fromTo(
+        callouts,
+        { opacity: 0, x: activeSystem % 2 === 0 ? 14 : -14 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.48,
+          stagger: 0.07,
+          ease: "power2.out",
+        },
+      );
+      gsap.fromTo(
+        panelCopy,
+        { opacity: 0, y: 18 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.55,
+          stagger: 0.045,
+          ease: "power3.out",
+        },
+      );
+    }, stage);
+
+    return () => scope.revert();
+  }, [activeSystem]);
 
   function handleAtlasKeys(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const last = systems.length - 1;
@@ -422,9 +333,15 @@ export default function Home() {
         <div className="hero-sticky" ref={heroStickyRef}>
           <header className="site-header">
             <a className="wordmark" href="#top" aria-label="Exalt Human home">
-              <span>EXALT</span>
-              <i aria-hidden="true" />
-              <span>HUMAN</span>
+              <Image
+                className="brand-logo"
+                src="/branding/logo-full-light.webp"
+                alt=""
+                width={196}
+                height={51}
+                priority
+                unoptimized
+              />
             </a>
 
             <nav className="desktop-nav" aria-label="Primary navigation">
@@ -453,30 +370,16 @@ export default function Home() {
 
           <div className="hero-media" aria-hidden="true">
             <div className="hero-image-motion">
-              <div className="hero-body-layer hero-body-side">
-                <Image
-                  src="/human-system-hero.png"
-                  alt=""
-                  fill
-                  priority
-                  sizes="100vw"
-                />
-              </div>
-              <div className="hero-body-layer hero-body-front">
-                <Image
-                  src="/human-system-hero-front.png"
-                  alt=""
-                  fill
-                  sizes="100vw"
-                />
-              </div>
+              <Image
+                ref={heroFrameRef}
+                className="hero-sequence-frame"
+                src={heroFrames[0]}
+                alt=""
+                fill
+                priority
+                sizes="100vw"
+              />
             </div>
-            <div className="hero-organ-glow hero-brain-glow" />
-            <div className="hero-neural-path">
-              <i />
-            </div>
-            <div className="hero-organ-glow hero-heart-glow" />
-            <div className="hero-scan" />
             <div className="hero-vignette" />
           </div>
 
@@ -589,7 +492,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="atlas-stage shell">
+        <div className="atlas-stage shell" ref={atlasStageRef}>
           <div
             className="atlas-tabs"
             role="tablist"
@@ -797,60 +700,20 @@ export default function Home() {
         </div>
       </section>
 
-      <section
-        className="newsletter"
-        id="newsletter"
-        aria-labelledby="newsletter-title"
-      >
-        <div className="newsletter-signal" aria-hidden="true">
-          <span />
-        </div>
-        <div className="shell newsletter-grid">
-          <p className="section-kicker">The Exalt Human Dispatch</p>
-          <div>
-            <h2 id="newsletter-title">
-              One clear idea about being human, every week.
-            </h2>
-            <p>
-              Body, mind, psychology, and health—well sourced and free from
-              miracle claims.
-            </p>
-            {subscribed ? (
-              <p className="success-message" role="status">
-                You&apos;re on the list. Your first dispatch is next.
-              </p>
-            ) : (
-              <form onSubmit={handleSubscribe}>
-                <label className="sr-only" htmlFor="email">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Email address"
-                  autoComplete="email"
-                  required
-                />
-                <button type="submit">
-                  Join the dispatch <span aria-hidden="true">↗</span>
-                </button>
-              </form>
-            )}
-            <small>
-              Educational content only. Unsubscribe whenever you like.
-            </small>
-          </div>
-        </div>
-      </section>
+      <OptimizationDispatch />
 
       <footer className="site-footer">
         <div className="shell">
           <div className="footer-top">
             <a className="wordmark" href="#top" aria-label="Exalt Human home">
-              <span>EXALT</span>
-              <i aria-hidden="true" />
-              <span>HUMAN</span>
+              <Image
+                className="brand-logo"
+                src="/branding/logo-full-light.webp"
+                alt=""
+                width={196}
+                height={51}
+                unoptimized
+              />
             </a>
             <p>Clearer knowledge for the system you live in.</p>
           </div>

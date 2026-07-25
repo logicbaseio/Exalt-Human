@@ -77,9 +77,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <header className="article-site-header">
         <div className="shell">
           <Link className="wordmark" href="/" aria-label="Exalt Human home">
-            <span>EXALT</span>
-            <i aria-hidden="true" />
-            <span>HUMAN</span>
+            <Image
+              className="brand-logo"
+              src="/branding/logo-full-dark.webp"
+              alt=""
+              width={196}
+              height={51}
+              priority
+              unoptimized
+            />
           </Link>
           <nav aria-label="Article navigation">
             <Link href="/#atlas">Human Atlas</Link>
@@ -273,9 +279,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <footer className="article-footer">
         <div className="shell">
           <Link className="wordmark" href="/">
-            <span>EXALT</span>
-            <i aria-hidden="true" />
-            <span>HUMAN</span>
+            <Image
+              className="brand-logo"
+              src="/branding/logo-full-light.webp"
+              alt="Exalt Human"
+              width={196}
+              height={51}
+              unoptimized
+            />
           </Link>
           <p>Evidence-led human optimization.</p>
           <Link href="/#research">Research index ↗</Link>
