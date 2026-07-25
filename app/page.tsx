@@ -1,73 +1,205 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import {
+  CSSProperties,
+  FormEvent,
+  KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 const systems = [
   {
     number: "01",
     name: "Body",
     descriptor: "Structure · Movement · Metabolism",
-    copy: "Understand the physical systems that carry, fuel, repair, and adapt you.",
+    thesis: "The physical structure that carries every experience.",
+    copy: "Trace how tissue, movement, circulation, and energy production work together to keep you capable and adaptive.",
+    fields: ["Musculoskeletal", "Cardiovascular", "Metabolic"],
+    points: [
+      { label: "Cardiovascular", side: "right", y: 29 },
+      { label: "Metabolic", side: "right", y: 44 },
+      { label: "Musculoskeletal", side: "left", y: 60 },
+    ],
+    focus: [51, 39],
   },
   {
     number: "02",
     name: "Mind",
     descriptor: "Cognition · Sleep · Attention",
-    copy: "Explore how the brain learns, focuses, remembers, and restores itself.",
+    thesis: "Attention, memory, and perception emerge from a body in context.",
+    copy: "Explore the nervous and circadian systems behind focus, learning, memory, sleep, and the way reality reaches consciousness.",
+    fields: ["Central nervous", "Sensory", "Circadian"],
+    points: [
+      { label: "Sensory", side: "left", y: 9 },
+      { label: "Central nervous", side: "right", y: 15 },
+      { label: "Circadian", side: "right", y: 23 },
+    ],
+    focus: [50, 12],
   },
   {
     number: "03",
     name: "Psychology",
     descriptor: "Emotion · Behavior · Identity",
-    copy: "See how perception and environment shape what you feel and what you do.",
+    thesis: "Behavior is shaped by learned patterns, emotion, and connection.",
+    copy: "See how stress, safety, relationships, and repeated experience influence what you feel, expect, and choose.",
+    fields: ["Stress response", "Emotional regulation", "Social cognition"],
+    points: [
+      { label: "Social cognition", side: "left", y: 12 },
+      { label: "Emotional regulation", side: "right", y: 20 },
+      { label: "Stress response", side: "left", y: 31 },
+    ],
+    focus: [50, 24],
   },
   {
     number: "04",
     name: "Health",
     descriptor: "Prevention · Recovery · Longevity",
-    copy: "Build the literacy to protect your health across a lifetime.",
+    thesis: "Resilience depends on systems working together.",
+    copy: "Build practical literacy around prevention, immune function, hormonal signaling, recovery, and health across a lifetime.",
+    fields: ["Immune", "Endocrine", "Recovery"],
+    points: [
+      { label: "Immune", side: "left", y: 37 },
+      { label: "Endocrine", side: "right", y: 45 },
+      { label: "Recovery", side: "left", y: 64 },
+    ],
+    focus: [50, 45],
   },
 ];
 
 const articles = [
   {
+    className: "story story-lead",
+    category: "Sleep",
+    title: "Sleep is the foundation. Everything else is downstream.",
+    summary:
+      "How sleep shapes cognition, metabolism, immunity, emotional regulation, and adaptation—and where the science is still evolving.",
+    time: "12 min read",
+    updated: "Jul 2026",
+    image: "/article-sleep.jpg",
+    width: 1122,
+    height: 1402,
+    alt: "A calm sleeping profile with a softly illuminated brain",
+  },
+  {
+    className: "story story-nervous",
     category: "Nervous system",
     title: "Your nervous system is always listening.",
     summary:
-      "A clear guide to stress, safety, regulation, and the signals your body processes before conscious thought.",
-    time: "10 min",
-    evidence: "Evidence guide",
+      "Stress, safety, regulation, and the signals your body processes before conscious thought.",
+    time: "10 min read",
+    updated: "Jul 2026",
+    image: "/article-nervous-system.jpg",
+    width: 1402,
+    height: 1122,
+    alt: "A human profile revealing the nervous system and spinal pathways",
   },
   {
+    className: "story story-metabolism",
     category: "Metabolism",
     title: "Metabolism is more than calories.",
     summary:
-      "How energy production, hormones, movement, sleep, and nutrition interact across the human system.",
-    time: "9 min",
-    evidence: "Research explainer",
-  },
-  {
-    category: "Psychology",
-    title: "Change begins before motivation.",
-    summary:
-      "The mechanics of behavior, environment, friction, and why durable habits rarely begin with willpower.",
-    time: "8 min",
-    evidence: "Field guide",
+      "Energy production, hormones, movement, sleep, and nutrition across the human system.",
+    time: "9 min read",
+    updated: "Jul 2026",
+    image: "/article-metabolism.jpg",
+    width: 1536,
+    height: 1024,
+    alt: "A detailed visualization of mitochondria within a human cell",
   },
 ];
 
 export default function Home() {
+  const [activeSystem, setActiveSystem] = useState(0);
   const [subscribed, setSubscribed] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
+  const atlasTabs = useRef<Array<HTMLButtonElement | null>>([]);
+  const currentSystem = systems[activeSystem];
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduceMotion) {
+      hero.classList.add("is-active");
+      return;
+    }
+
+    let animationFrame = 0;
+
+    const moveImage = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(() => {
+        const bounds = hero.getBoundingClientRect();
+        const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+        const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+        hero.style.setProperty("--hero-x", `${x * 9}px`);
+        hero.style.setProperty("--hero-y", `${y * 6}px`);
+      });
+    };
+
+    const resetImage = () => {
+      hero.style.setProperty("--hero-x", "0px");
+      hero.style.setProperty("--hero-y", "0px");
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => hero.classList.toggle("is-active", entry.isIntersecting),
+      { threshold: 0.15 },
+    );
+
+    observer.observe(hero);
+    hero.addEventListener("pointermove", moveImage);
+    hero.addEventListener("pointerleave", resetImage);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      observer.disconnect();
+      hero.removeEventListener("pointermove", moveImage);
+      hero.removeEventListener("pointerleave", resetImage);
+    };
+  }, []);
 
   function handleSubscribe(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubscribed(true);
   }
 
+  function handleAtlasKeys(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const last = systems.length - 1;
+    let next = index;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      next = index === last ? 0 : index + 1;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      next = index === 0 ? last : index - 1;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = last;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    setActiveSystem(next);
+    atlasTabs.current[next]?.focus();
+  }
+
   return (
     <main>
-      <section className="hero" id="top" aria-labelledby="hero-title">
+      <section
+        className="hero is-active"
+        id="top"
+        aria-labelledby="hero-title"
+        ref={heroRef}
+      >
         <header className="site-header">
           <a className="wordmark" href="#top" aria-label="Exalt Human home">
             <span>EXALT</span>
@@ -76,14 +208,12 @@ export default function Home() {
           </a>
 
           <nav className="desktop-nav" aria-label="Primary navigation">
-            <a href="#systems">Body</a>
-            <a href="#systems">Mind</a>
-            <a href="#systems">Psychology</a>
-            <a href="#systems">Health</a>
+            <a href="#atlas">Human Atlas</a>
             <a href="#research">Research</a>
+            <a href="#standard">Our standard</a>
           </nav>
 
-          <a className="header-link" href="#journal">
+          <a className="header-link" href="#research">
             Explore <span aria-hidden="true">↗</span>
           </a>
 
@@ -93,22 +223,30 @@ export default function Home() {
               <span />
             </summary>
             <nav aria-label="Mobile navigation">
-              <a href="#systems">Human systems</a>
-              <a href="#research">Featured research</a>
-              <a href="#journal">Journal</a>
+              <a href="#atlas">Human Atlas</a>
+              <a href="#research">Research journal</a>
               <a href="#standard">Research standard</a>
+              <a href="#newsletter">The Dispatch</a>
             </nav>
           </details>
         </header>
 
         <div className="hero-media" aria-hidden="true">
-          <Image
-            src="/human-system-hero.png"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-          />
+          <div className="hero-image-motion">
+            <Image
+              src="/human-system-hero.png"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+            />
+          </div>
+          <div className="hero-organ-glow hero-brain-glow" />
+          <div className="hero-neural-path">
+            <i />
+          </div>
+          <div className="hero-organ-glow hero-heart-glow" />
+          <div className="hero-scan" />
           <div className="hero-vignette" />
         </div>
 
@@ -125,8 +263,8 @@ export default function Home() {
               Exalt Human turns biology, psychology, and health research into
               clear knowledge for living better.
             </p>
-            <a href="#systems">
-              Explore the human system <span aria-hidden="true">↓</span>
+            <a href="#atlas">
+              Enter the Human Atlas <span aria-hidden="true">↓</span>
             </a>
           </div>
         </div>
@@ -137,183 +275,248 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="manifesto" aria-labelledby="manifesto-title">
-        <div className="shell">
-          <p className="section-kicker">Why Exalt Human</p>
-          <h2 id="manifesto-title">
-            Your body is not a trend. It is a living system—adaptable,
-            connected, and worth understanding.
-          </h2>
-          <div className="manifesto-foot">
+      <section className="thesis" aria-labelledby="thesis-title">
+        <div className="thesis-word" aria-hidden="true">
+          HUMAN
+        </div>
+        <div className="shell thesis-grid">
+          <div className="thesis-index">
+            <span>01</span>
+            <span>THE WHOLE SYSTEM</span>
+          </div>
+          <div>
+            <p className="section-kicker">The principle</p>
+            <h2 id="thesis-title">You were never built in parts.</h2>
+            <p className="thesis-lead">
+              Every thought has biology. Every behavior has context. Every
+              system changes the systems around it.
+            </p>
+          </div>
+          <div className="thesis-signals">
             <p>
-              We make complex human science legible without flattening the
-              nuance.
+              <span>01</span>
+              Your nervous system listens.
             </p>
             <p>
-              No miracle claims.<br />
-              No manufactured urgency.
+              <span>02</span>
+              Your metabolism responds.
+            </p>
+            <p>
+              <span>03</span>
+              Your psychology adapts.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="systems" id="systems" aria-labelledby="systems-title">
-        <div className="shell">
-          <div className="section-heading">
-            <p className="section-kicker">The human index</p>
-            <h2 id="systems-title">Learn the whole system.</h2>
-            <p>
-              Health is never one variable. Trace the connections between the
-              body, mind, behavior, and environment.
-            </p>
+      <section className="atlas" id="atlas" aria-labelledby="atlas-title">
+        <div className="atlas-heading shell">
+          <p className="section-kicker">Interactive Human Atlas</p>
+          <h2 id="atlas-title">The systems beneath the self.</h2>
+          <p>
+            Select a field. See the structures, signals, and processes behind
+            how you function.
+          </p>
+        </div>
+
+        <div className="atlas-stage shell">
+          <div
+            className="atlas-tabs"
+            role="tablist"
+            aria-label="Human system fields"
+            aria-orientation="vertical"
+          >
+            {systems.map((system, index) => (
+              <button
+                key={system.name}
+                type="button"
+                role="tab"
+                id={`atlas-tab-${index}`}
+                aria-controls="atlas-panel"
+                aria-selected={activeSystem === index}
+                tabIndex={activeSystem === index ? 0 : -1}
+                ref={(element) => {
+                  atlasTabs.current[index] = element;
+                }}
+                onClick={() => setActiveSystem(index)}
+                onKeyDown={(event) => handleAtlasKeys(event, index)}
+              >
+                <span>{system.number}</span>
+                {system.name}
+              </button>
+            ))}
+            <div className="atlas-progress" aria-hidden="true">
+              <span>{currentSystem.number}</span>
+              <i />
+              <span>04</span>
+            </div>
           </div>
 
-          <div className="system-list">
-            {systems.map((system) => (
-              <a className="system-row" href="#journal" key={system.name}>
-                <span className="system-number">{system.number}</span>
-                <span className="system-name">{system.name}</span>
-                <span className="system-details">
-                  <small>{system.descriptor}</small>
-                  <span>{system.copy}</span>
+          <div
+            className="atlas-figure"
+            style={
+              {
+                "--focus-x": `${currentSystem.focus[0]}%`,
+                "--focus-y": `${currentSystem.focus[1]}%`,
+              } as CSSProperties
+            }
+          >
+            <div className="atlas-aura" aria-hidden="true" />
+            <Image
+              src="/human-atlas.jpg"
+              alt="Front-facing anatomical figure showing the interconnected systems of the human body"
+              width={864}
+              height={1821}
+              sizes="(max-width: 760px) 78vw, 470px"
+              priority={false}
+            />
+            <div className="atlas-callouts" aria-hidden="true">
+              {currentSystem.points.map((point) => (
+                <span
+                  className={`atlas-callout atlas-callout-${point.side}`}
+                  style={{ "--callout-y": `${point.y}%` } as CSSProperties}
+                  key={point.label}
+                >
+                  <b>{point.label}</b>
+                  <i />
                 </span>
-                <span className="system-arrow" aria-hidden="true">
-                  ↗
-                </span>
-              </a>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div
+            className="atlas-panel"
+            id="atlas-panel"
+            role="tabpanel"
+            aria-labelledby={`atlas-tab-${activeSystem}`}
+          >
+            <div className="atlas-panel-meta">
+              <span>{currentSystem.number} / 04</span>
+              <span>{currentSystem.descriptor}</span>
+            </div>
+            <div className="atlas-panel-copy" aria-live="polite">
+              <h3>{currentSystem.thesis}</h3>
+              <p>{currentSystem.copy}</p>
+            </div>
+            <div className="atlas-fields">
+              {currentSystem.fields.map((field, index) => (
+                <a href="#research" key={field}>
+                  <span>0{index + 1}</span>
+                  {field}
+                  <i aria-hidden="true">↗</i>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       <section
-        className="featured-research"
+        className="research-journal"
         id="research"
-        aria-labelledby="feature-title"
+        aria-labelledby="research-title"
       >
-        <div className="research-signal" aria-hidden="true">
-          <span />
+        <div className="journal-intro shell">
+          <p className="section-kicker">The research journal</p>
+          <h2 id="research-title">
+            Ideas that change how you see yourself.
+          </h2>
+          <p>
+            Evidence-led explorations of the body, mind, and conditions that
+            shape human potential.
+          </p>
         </div>
-        <div className="shell research-layout">
-          <div className="research-main">
-            <div className="research-meta">
-              <span>Featured research</span>
-              <span>Sleep / Circadian biology</span>
-              <span>12 min read</span>
-            </div>
-            <h2 id="feature-title">
-              Sleep is the foundation.
-              <br />
-              Everything else is downstream.
-            </h2>
-            <p className="research-deck">
-              Sleep touches cognition, metabolism, immunity, emotional
-              regulation, and adaptation. Here is what the evidence actually
-              says—and where it is still evolving.
-            </p>
-            <a className="light-link" href="#journal">
-              Read the research <span aria-hidden="true">↗</span>
+
+        <div className="story-grid shell">
+          {articles.map((article, index) => (
+            <a className={article.className} href="#newsletter" key={article.title}>
+              <div className="story-number" aria-hidden="true">
+                0{index + 1}
+              </div>
+              <div className="story-image">
+                <Image
+                  src={article.image}
+                  alt={article.alt}
+                  width={article.width}
+                  height={article.height}
+                  sizes={
+                    index === 0
+                      ? "(max-width: 760px) calc(100vw - 32px), 58vw"
+                      : "(max-width: 760px) calc(100vw - 32px), 38vw"
+                  }
+                />
+              </div>
+              <div className="story-meta">
+                <span>{article.category}</span>
+                <span>{article.time}</span>
+                <span>{article.updated}</span>
+              </div>
+              <h3>{article.title}</h3>
+              <p>{article.summary}</p>
+              <span className="story-link">
+                Read the research <i aria-hidden="true">↗</i>
+              </span>
             </a>
-          </div>
-
-          <aside className="evidence-note" aria-label="Article evidence note">
-            <p>Evidence lens</p>
-            <strong>Established + evolving</strong>
-            <span>
-              This guide separates high-confidence findings from practical
-              interpretation and open questions.
-            </span>
-            <dl>
-              <div>
-                <dt>Last reviewed</dt>
-                <dd>July 2026</dd>
-              </div>
-              <div>
-                <dt>Format</dt>
-                <dd>Research synthesis</dd>
-              </div>
-            </dl>
-          </aside>
-        </div>
-      </section>
-
-      <section className="journal" id="journal" aria-labelledby="journal-title">
-        <div className="shell">
-          <div className="journal-heading">
-            <p className="section-kicker">Latest intelligence</p>
-            <h2 id="journal-title">Read what changes how you see yourself.</h2>
-          </div>
-
-          <div className="article-list">
-            {articles.map((article, index) => (
-              <article className="article-row" key={article.title}>
-                <div className="article-index">
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <span>{article.category}</span>
-                </div>
-                <div className="article-copy">
-                  <h3>{article.title}</h3>
-                  <p>{article.summary}</p>
-                </div>
-                <div className="article-meta">
-                  <span>{article.evidence}</span>
-                  <span>{article.time}</span>
-                  <a href="#newsletter" aria-label={`Read ${article.title}`}>
-                    Read <span aria-hidden="true">↗</span>
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
+          ))}
         </div>
       </section>
 
       <section className="standard" id="standard" aria-labelledby="standard-title">
-        <div className="shell standard-grid">
-          <div className="standard-title">
-            <p className="section-kicker">The research standard</p>
-            <h2 id="standard-title">
-              Clarity without false certainty.
-            </h2>
+        <div className="shell standard-top">
+          <p className="section-kicker">The Exalt standard</p>
+          <h2 id="standard-title">We show our working.</h2>
+          <p>
+            Research is rarely a simple yes or no. We make the strength,
+            limits, and maturity of the evidence visible.
+          </p>
+        </div>
+
+        <div className="shell evidence-spectrum" aria-label="Evidence spectrum">
+          <div className="spectrum-labels">
+            <span>
+              <b>Established</b>
+              Repeated, high-confidence findings
+            </span>
+            <span>
+              <b>Evolving</b>
+              Promising evidence with open questions
+            </span>
+            <span>
+              <b>Exploratory</b>
+              Early mechanisms and hypotheses
+            </span>
           </div>
-          <div className="standard-copy">
-            <p className="standard-lead">
-              Every research-led article distinguishes what is established,
-              what is emerging, and what remains unknown.
+          <div className="spectrum-track" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </div>
+        </div>
+
+        <div className="shell standard-principles">
+          <article>
+            <span>01</span>
+            <h3>Source the claim.</h3>
+            <p>
+              Peer-reviewed evidence and review dates accompany every
+              research-led article.
             </p>
-            <ol>
-              <li>
-                <span>01</span>
-                <div>
-                  <strong>Start with evidence</strong>
-                  <p>
-                    We interpret peer-reviewed research and link readers to the
-                    source material.
-                  </p>
-                </div>
-              </li>
-              <li>
-                <span>02</span>
-                <div>
-                  <strong>Preserve the nuance</strong>
-                  <p>
-                    Association is not causation. Plausible is not proven. We
-                    say which is which.
-                  </p>
-                </div>
-              </li>
-              <li>
-                <span>03</span>
-                <div>
-                  <strong>Update the record</strong>
-                  <p>
-                    Review dates and evidence labels show when our understanding
-                    changes.
-                  </p>
-                </div>
-              </li>
-            </ol>
-          </div>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Preserve the nuance.</h3>
+            <p>
+              Association is not causation. Plausible is not proven. We say
+              which is which.
+            </p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Update the record.</h3>
+            <p>
+              When the evidence changes, our interpretation changes with it.
+            </p>
+          </article>
         </div>
       </section>
 
@@ -322,6 +525,9 @@ export default function Home() {
         id="newsletter"
         aria-labelledby="newsletter-title"
       >
+        <div className="newsletter-signal" aria-hidden="true">
+          <span />
+        </div>
         <div className="shell newsletter-grid">
           <p className="section-kicker">The Exalt Human Dispatch</p>
           <div>
@@ -373,11 +579,10 @@ export default function Home() {
           </div>
           <div className="footer-bottom">
             <nav aria-label="Footer navigation">
-              <a href="#systems">Body</a>
-              <a href="#systems">Mind</a>
-              <a href="#systems">Psychology</a>
-              <a href="#systems">Health</a>
+              <a href="#atlas">Human Atlas</a>
+              <a href="#research">Research</a>
               <a href="#standard">Editorial standard</a>
+              <a href="#newsletter">The Dispatch</a>
             </nav>
             <div>
               <span>© 2026 Exalt Human</span>
