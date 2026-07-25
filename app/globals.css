@@ -179,10 +179,29 @@ a {
   will-change: transform;
 }
 
-.hero-sequence-frame {
+.hero-sequence-poster,
+.hero-sequence-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-sequence-poster {
   object-fit: cover;
   object-position: center;
   user-select: none;
+}
+
+.hero-sequence-canvas {
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 120ms linear;
+}
+
+.hero-sequence-canvas[data-ready="true"] {
+  opacity: 1;
 }
 
 .hero-organ-glow {
@@ -676,10 +695,9 @@ a {
 .atlas-figure {
   position: relative;
   justify-self: center;
-  width: min(100%, 470px);
-  height: 790px;
+  width: min(100%, 430px);
+  height: 810px;
   isolation: isolate;
-  perspective: 1200px;
 }
 
 .atlas-figure::before {
@@ -732,71 +750,49 @@ a {
     left 440ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.atlas-callout {
-  --line-width: 62px;
+.atlas-callouts {
   position: absolute;
-  z-index: 3;
-  top: var(--callout-y);
-  left: var(--callout-x);
-  display: flex;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 8px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  z-index: 4;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
   pointer-events: none;
+}
+
+.atlas-callout-group {
+  will-change: opacity;
+}
+
+.atlas-callout-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  will-change: stroke-dashoffset;
+}
+
+.atlas-callout-anchor {
+  fill: var(--signal);
+  filter: drop-shadow(0 0 8px rgba(241, 52, 15, 0.9));
+  stroke: rgba(255, 255, 255, 0.72);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.atlas-callout-label {
+  fill: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 18px;
+  font-weight: 620;
+  letter-spacing: 1.4px;
+  paint-order: stroke;
+  stroke: #050505;
+  stroke-linejoin: round;
+  stroke-width: 8px;
   text-transform: uppercase;
-  transform: translateY(-50%);
-  will-change: transform, opacity;
-}
-
-.atlas-callout b {
-  font-weight: inherit;
-  white-space: nowrap;
-}
-
-.atlas-callout i {
-  position: relative;
-  width: var(--line-width);
-  height: 1px;
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.atlas-callout i::after {
-  position: absolute;
-  top: -2px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--signal);
-  content: "";
-}
-
-.atlas-callout-left {
-  flex-direction: row;
-  transform: translate(-100%, -50%);
-}
-
-.atlas-callout-left i {
-  order: 2;
-  margin-left: 10px;
-}
-
-.atlas-callout-left i::after {
-  right: 0;
-}
-
-.atlas-callout-right {
-  flex-direction: row-reverse;
-}
-
-.atlas-callout-right i {
-  margin-right: 10px;
-}
-
-.atlas-callout-right i::after {
-  left: 0;
 }
 
 .atlas-panel {
@@ -2124,10 +2120,6 @@ a {
     height: 720px;
   }
 
-  .atlas-callout {
-    --line-width: 38px;
-  }
-
   .story-grid {
     column-gap: 20px;
   }
@@ -2160,7 +2152,7 @@ a {
     inset: -1%;
   }
 
-  .hero-sequence-frame {
+  .hero-sequence-poster {
     object-position: 72% center;
   }
 
@@ -2346,7 +2338,7 @@ a {
     height: min(71svh, 760px);
   }
 
-  .atlas-callout {
+  .atlas-callouts {
     display: none;
   }
 
@@ -2618,7 +2610,7 @@ a {
     inset: 0;
   }
 
-  .hero-sequence-frame {
+  .hero-sequence-poster {
     object-position: 74% center;
   }
 

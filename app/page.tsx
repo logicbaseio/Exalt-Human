@@ -26,11 +26,11 @@ const systems = [
     copy: "Trace how tissue, movement, circulation, and energy production work together to keep you capable and adaptive.",
     fields: ["Musculoskeletal", "Cardiovascular", "Metabolic"],
     points: [
-      { label: "Heart & vessels", side: "right", x: 54.2, y: 27.8 },
-      { label: "Liver & gut", side: "left", x: 47.1, y: 37.1 },
-      { label: "Skeletal muscle", side: "left", x: 41.9, y: 63.4 },
+      { label: "Cardiac muscle", side: "right", x: 54.2, y: 27.4, labelY: 26 },
+      { label: "Liver", side: "left", x: 43, y: 34.5, labelY: 35 },
+      { label: "Quadriceps", side: "right", x: 61.2, y: 62.6, labelY: 63 },
     ],
-    focus: [52, 31],
+    focus: [52, 29],
   },
   {
     number: "02",
@@ -40,11 +40,11 @@ const systems = [
     copy: "Explore the nervous and circadian systems behind focus, learning, memory, sleep, and the way reality reaches consciousness.",
     fields: ["Central nervous", "Sensory", "Circadian"],
     points: [
-      { label: "Cerebral cortex", side: "left", x: 47.4, y: 7.6 },
-      { label: "Brainstem & cord", side: "right", x: 51.1, y: 19.2 },
-      { label: "Circadian center", side: "right", x: 52.2, y: 11 },
+      { label: "Cerebral cortex", side: "right", x: 50, y: 7.8, labelY: 6.3 },
+      { label: "Brainstem", side: "left", x: 50, y: 14.5, labelY: 13.2 },
+      { label: "Spinal cord", side: "right", x: 50, y: 19.2, labelY: 20.4 },
     ],
-    focus: [49, 11],
+    focus: [50, 10],
   },
   {
     number: "03",
@@ -54,11 +54,11 @@ const systems = [
     copy: "See how stress, safety, relationships, and repeated experience influence what you feel, expect, and choose.",
     fields: ["Stress response", "Emotional regulation", "Social cognition"],
     points: [
-      { label: "Prefrontal networks", side: "left", x: 46.7, y: 8.3 },
-      { label: "Autonomic pathways", side: "right", x: 52.2, y: 27.1 },
-      { label: "Gut–brain signaling", side: "left", x: 48.5, y: 39 },
+      { label: "Prefrontal cortex", side: "left", x: 50, y: 6.4, labelY: 5.3 },
+      { label: "Autonomic pathways", side: "right", x: 50, y: 16.4, labelY: 16.2 },
+      { label: "Enteric nervous system", side: "left", x: 50, y: 41.2, labelY: 41.8 },
     ],
-    focus: [51, 26],
+    focus: [50, 18],
   },
   {
     number: "04",
@@ -68,11 +68,11 @@ const systems = [
     copy: "Build practical literacy around prevention, immune function, hormonal signaling, recovery, and health across a lifetime.",
     fields: ["Immune", "Endocrine", "Recovery"],
     points: [
-      { label: "Immune organs", side: "left", x: 50.2, y: 24.4 },
-      { label: "Endocrine organs", side: "right", x: 50.6, y: 17 },
-      { label: "Recovery tissue", side: "right", x: 58.9, y: 62 },
+      { label: "Thyroid gland", side: "left", x: 50, y: 17.2, labelY: 16.2 },
+      { label: "Thymus", side: "right", x: 50, y: 22.8, labelY: 23.2 },
+      { label: "Intestinal barrier", side: "left", x: 50, y: 42, labelY: 42.8 },
     ],
-    focus: [51, 25],
+    focus: [50, 24],
   },
 ];
 
@@ -125,15 +125,15 @@ export default function Home() {
   const [activeSystem, setActiveSystem] = useState(0);
   const heroRef = useRef<HTMLElement>(null);
   const heroStickyRef = useRef<HTMLDivElement>(null);
-  const heroFrameRef = useRef<HTMLImageElement>(null);
+  const heroCanvasRef = useRef<HTMLCanvasElement>(null);
   const atlasStageRef = useRef<HTMLDivElement>(null);
   const atlasTabs = useRef<Array<HTMLButtonElement | null>>([]);
   const currentSystem = systems[activeSystem];
 
   useEffect(() => {
     const hero = heroRef.current;
-    const frame = heroFrameRef.current;
-    if (!hero || !frame) return;
+    const canvas = heroCanvasRef.current;
+    if (!hero || !canvas) return;
 
     const imageMotion = hero.querySelector<HTMLElement>(".hero-image-motion");
     const messageOne = hero.querySelector<HTMLElement>(".hero-message-one");
@@ -157,15 +157,91 @@ export default function Home() {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const preload = heroFrames.map(
-      (source) =>
-        new Promise<void>((resolve) => {
-          const image = new window.Image();
-          image.onload = () => resolve();
-          image.onerror = () => resolve();
-          image.src = source;
-        }),
-    );
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) return;
+
+    const sequence = heroFrames.map((source) => {
+      const image = new window.Image();
+      image.decoding = "async";
+      image.src = source;
+      return image;
+    });
+    const decoded = new Set<number>();
+    let targetProgress = 0;
+    let renderedFrame = -1;
+    let animationFrame = 0;
+
+    const drawFrame = (force = false) => {
+      animationFrame = 0;
+      const requested = Math.round(targetProgress * (sequence.length - 1));
+      let frameIndex = requested;
+
+      if (!decoded.has(frameIndex)) {
+        for (let distance = 1; distance < sequence.length; distance += 1) {
+          const before = requested - distance;
+          const after = requested + distance;
+          if (before >= 0 && decoded.has(before)) {
+            frameIndex = before;
+            break;
+          }
+          if (after < sequence.length && decoded.has(after)) {
+            frameIndex = after;
+            break;
+          }
+        }
+      }
+
+      const image = sequence[frameIndex];
+      if (!image || !decoded.has(frameIndex) || (!force && frameIndex === renderedFrame)) {
+        return;
+      }
+
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const outputWidth = Math.round(width * dpr);
+      const outputHeight = Math.round(height * dpr);
+      if (canvas.width !== outputWidth || canvas.height !== outputHeight) {
+        canvas.width = outputWidth;
+        canvas.height = outputHeight;
+      }
+
+      const scale = Math.max(
+        outputWidth / image.naturalWidth,
+        outputHeight / image.naturalHeight,
+      );
+      const drawWidth = image.naturalWidth * scale;
+      const drawHeight = image.naturalHeight * scale;
+      const focalX = window.innerWidth <= 820 ? 0.72 : 0.5;
+      const x = (outputWidth - drawWidth) * focalX;
+      const y = (outputHeight - drawHeight) * 0.5;
+
+      context.clearRect(0, 0, outputWidth, outputHeight);
+      context.drawImage(image, x, y, drawWidth, drawHeight);
+      canvas.dataset.ready = "true";
+      canvas.dataset.frame = String(frameIndex);
+      renderedFrame = frameIndex;
+    };
+
+    const requestDraw = (force = false) => {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(() => drawFrame(force));
+    };
+
+    sequence.forEach((image, index) => {
+      const markDecoded = () => {
+        decoded.add(index);
+        requestDraw(true);
+      };
+      image.decode().then(markDecoded).catch(() => {
+        if (image.complete && image.naturalWidth) markDecoded();
+      });
+    });
+    const handleResize = () => {
+      renderedFrame = -1;
+      requestDraw(true);
+    };
+    window.addEventListener("resize", handleResize, { passive: true });
 
     const scope = gsap.context(() => {
       const setMessage = (element: HTMLElement, opacity: number) => {
@@ -185,7 +261,8 @@ export default function Home() {
       });
 
       if (reduceMotion) {
-        frame.src = heroFrames.at(-1) ?? heroFrames[0];
+        targetProgress = 1;
+        requestDraw(true);
         setMessage(messageOne, 0);
         setMessage(messageTwo, 0);
         setMessage(messageThree, 1);
@@ -193,30 +270,26 @@ export default function Home() {
         return;
       }
 
-      let currentFrame = -1;
+      const setScale = gsap.quickSetter(imageMotion, "scale");
+      const setX = gsap.quickSetter(imageMotion, "xPercent");
+      const setY = gsap.quickSetter(imageMotion, "yPercent");
       const render = (progress: number) => {
-        const nextFrame = Math.round(progress * (heroFrames.length - 1));
-        if (nextFrame !== currentFrame) {
-          frame.src = heroFrames[nextFrame];
-          currentFrame = nextFrame;
-        }
-
-        gsap.set(imageMotion, {
-          scale: 1 + progress * 0.085,
-          xPercent: progress * -1.7,
-          yPercent: progress * -0.8,
-        });
+        targetProgress = progress;
+        requestDraw();
+        setScale(1 + progress * 0.045);
+        setX(progress * -0.8);
+        setY(progress * -0.35);
         gsap.set(scrollProgress, { scaleX: progress });
 
-        setMessage(messageOne, fadeOut(progress, 0.24, 0.33));
+        setMessage(messageOne, fadeOut(progress, 0.22, 0.28));
         setMessage(
           messageTwo,
           Math.min(
-            fadeIn(progress, 0.28, 0.36),
-            fadeOut(progress, 0.58, 0.67),
+            fadeIn(progress, 0.3, 0.36),
+            fadeOut(progress, 0.58, 0.64),
           ),
         );
-        setMessage(messageThree, fadeIn(progress, 0.63, 0.72));
+        setMessage(messageThree, fadeIn(progress, 0.66, 0.72));
       };
 
       render(0);
@@ -229,9 +302,11 @@ export default function Home() {
       });
     }, hero);
 
-    Promise.all(preload).then(() => ScrollTrigger.refresh());
-
-    return () => scope.revert();
+    return () => {
+      scope.revert();
+      window.removeEventListener("resize", handleResize);
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+    };
   }, []);
 
   useEffect(() => {
@@ -246,27 +321,32 @@ export default function Home() {
     const scope = gsap.context(() => {
       const figure = stage.querySelector(".atlas-figure img");
       const aura = stage.querySelector(".atlas-aura");
-      const callouts = stage.querySelectorAll(".atlas-callout");
+      const calloutGroups = stage.querySelectorAll(".atlas-callout-group");
+      const calloutLines = stage.querySelectorAll(".atlas-callout-line");
       const panelCopy = stage.querySelectorAll(
         ".atlas-panel-meta, .atlas-panel-copy, .atlas-fields a",
       );
       if (!figure) return;
 
-      gsap.killTweensOf([figure, aura, callouts, panelCopy]);
+      gsap.killTweensOf([
+        figure,
+        aura,
+        calloutGroups,
+        calloutLines,
+        panelCopy,
+      ]);
       gsap.fromTo(
         figure,
         {
-          scale: 0.975,
-          rotationY: activeSystem % 2 === 0 ? -3.5 : 3.5,
-          y: 10,
+          scale: 0.992,
+          y: 6,
         },
         {
-          scale: 1.025,
-          rotationY: 0,
+          scale: 1.008,
           y: 0,
-          duration: 0.72,
-          ease: "power3.out",
-          transformOrigin: "50% 34%",
+          duration: 0.64,
+          ease: "power2.out",
+          transformOrigin: `${currentSystem.focus[0]}% ${currentSystem.focus[1]}%`,
         },
       );
       gsap.fromTo(
@@ -275,14 +355,23 @@ export default function Home() {
         { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" },
       );
       gsap.fromTo(
-        callouts,
-        { opacity: 0, x: activeSystem % 2 === 0 ? 14 : -14 },
+        calloutLines,
+        { strokeDashoffset: 1 },
         {
-          opacity: 1,
-          x: 0,
-          duration: 0.48,
-          stagger: 0.07,
-          ease: "power2.out",
+          strokeDashoffset: 0,
+          duration: 0.56,
+          stagger: 0.08,
+          ease: "power2.inOut",
+        },
+      );
+      gsap.fromTo(
+        calloutGroups,
+        { autoAlpha: 0 },
+        {
+          autoAlpha: 1,
+          duration: 0.34,
+          stagger: 0.08,
+          ease: "power1.out",
         },
       );
       gsap.fromTo(
@@ -299,7 +388,7 @@ export default function Home() {
     }, stage);
 
     return () => scope.revert();
-  }, [activeSystem]);
+  }, [activeSystem, currentSystem.focus]);
 
   function handleAtlasKeys(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const last = systems.length - 1;
@@ -371,14 +460,15 @@ export default function Home() {
           <div className="hero-media" aria-hidden="true">
             <div className="hero-image-motion">
               <Image
-                ref={heroFrameRef}
-                className="hero-sequence-frame"
+                className="hero-sequence-poster"
                 src={heroFrames[0]}
                 alt=""
                 fill
                 priority
                 sizes="100vw"
+                unoptimized
               />
+              <canvas ref={heroCanvasRef} className="hero-sequence-canvas" />
             </div>
             <div className="hero-vignette" />
           </div>
@@ -543,23 +633,46 @@ export default function Home() {
               sizes="(max-width: 760px) 78vw, 470px"
               priority={false}
             />
-            <div className="atlas-callouts" aria-hidden="true">
-              {currentSystem.points.map((point) => (
-                <span
-                  className={`atlas-callout atlas-callout-${point.side}`}
-                  style={
-                    {
-                      "--callout-x": `${point.x}%`,
-                      "--callout-y": `${point.y}%`,
-                    } as CSSProperties
-                  }
-                  key={point.label}
-                >
-                  <b>{point.label}</b>
-                  <i />
-                </span>
-              ))}
-            </div>
+            <svg
+              className="atlas-callouts"
+              viewBox="0 0 864 1821"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              {currentSystem.points.map((point) => {
+                const anchorX = point.x * 8.64;
+                const anchorY = point.y * 18.21;
+                const labelY = point.labelY * 18.21;
+                const isLeft = point.side === "left";
+                const kneeX = isLeft ? anchorX - 44 : anchorX + 44;
+                const railX = isLeft ? -138 : 1002;
+                const labelX = isLeft ? -165 : 974;
+
+                return (
+                  <g className="atlas-callout-group" key={point.label}>
+                    <polyline
+                      className="atlas-callout-line"
+                      pathLength="1"
+                      points={`${anchorX},${anchorY} ${kneeX},${anchorY} ${railX},${labelY}`}
+                    />
+                    <circle
+                      className="atlas-callout-anchor"
+                      cx={anchorX}
+                      cy={anchorY}
+                      r="6"
+                    />
+                    <text
+                      className="atlas-callout-label"
+                      x={labelX}
+                      y={labelY + 6}
+                      textAnchor="end"
+                    >
+                      {point.label}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
           </div>
 
           <div
