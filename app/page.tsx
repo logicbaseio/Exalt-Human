@@ -435,26 +435,24 @@ export default function Home() {
         <div className="story-grid shell">
           {articles.map((article, index) => (
             <a className={article.className} href="#newsletter" key={article.title}>
-              <div className="story-number" aria-hidden="true">
-                0{index + 1}
-              </div>
               <div className="story-image">
                 <Image
                   src={article.image}
                   alt={article.alt}
                   width={article.width}
                   height={article.height}
-                  sizes={
-                    index === 0
-                      ? "(max-width: 760px) calc(100vw - 32px), 58vw"
-                      : "(max-width: 760px) calc(100vw - 32px), 38vw"
-                  }
+                  sizes="(max-width: 820px) calc(100vw - 32px), (max-width: 1160px) 31vw, 470px"
                 />
               </div>
               <div className="story-meta">
-                <span>{article.category}</span>
-                <span>{article.time}</span>
-                <span>{article.updated}</span>
+                <div>
+                  <span>{article.category}</span>
+                  <span>{article.time}</span>
+                  <span>{article.updated}</span>
+                </div>
+                <span className="story-number" aria-hidden="true">
+                  0{index + 1}
+                </span>
               </div>
               <h3>{article.title}</h3>
               <p>{article.summary}</p>
