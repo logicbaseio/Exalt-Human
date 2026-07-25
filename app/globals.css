@@ -665,6 +665,7 @@ a {
   position: absolute;
   z-index: 3;
   top: var(--callout-y);
+  left: var(--callout-x);
   display: flex;
   align-items: center;
   color: rgba(255, 255, 255, 0.7);
@@ -672,7 +673,9 @@ a {
   font-size: 8px;
   font-weight: 500;
   letter-spacing: 0.08em;
+  pointer-events: none;
   text-transform: uppercase;
+  transform: translateY(-50%);
   animation: callout-in 420ms both;
 }
 
@@ -699,8 +702,8 @@ a {
 }
 
 .atlas-callout-left {
-  right: 76%;
   flex-direction: row;
+  transform: translate(-100%, -50%);
 }
 
 .atlas-callout-left i {
@@ -713,7 +716,6 @@ a {
 }
 
 .atlas-callout-right {
-  left: 76%;
   flex-direction: row-reverse;
 }
 
@@ -1384,11 +1386,9 @@ a {
 @keyframes callout-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1690,19 +1690,7 @@ a {
   }
 
   .atlas-callout {
-    --line-width: 28px;
-  }
-
-  .atlas-callout b {
     display: none;
-  }
-
-  .atlas-callout-left {
-    right: 79%;
-  }
-
-  .atlas-callout-right {
-    left: 79%;
   }
 
   .atlas-panel {

@@ -19,11 +19,11 @@ const systems = [
     copy: "Trace how tissue, movement, circulation, and energy production work together to keep you capable and adaptive.",
     fields: ["Musculoskeletal", "Cardiovascular", "Metabolic"],
     points: [
-      { label: "Cardiovascular", side: "right", y: 29 },
-      { label: "Metabolic", side: "right", y: 44 },
-      { label: "Musculoskeletal", side: "left", y: 60 },
+      { label: "Heart & vessels", side: "right", x: 54.2, y: 27.8 },
+      { label: "Liver & gut", side: "left", x: 47.1, y: 37.1 },
+      { label: "Skeletal muscle", side: "left", x: 41.9, y: 63.4 },
     ],
-    focus: [51, 39],
+    focus: [52, 31],
   },
   {
     number: "02",
@@ -33,11 +33,11 @@ const systems = [
     copy: "Explore the nervous and circadian systems behind focus, learning, memory, sleep, and the way reality reaches consciousness.",
     fields: ["Central nervous", "Sensory", "Circadian"],
     points: [
-      { label: "Sensory", side: "left", y: 9 },
-      { label: "Central nervous", side: "right", y: 15 },
-      { label: "Circadian", side: "right", y: 23 },
+      { label: "Cerebral cortex", side: "left", x: 47.4, y: 7.6 },
+      { label: "Brainstem & cord", side: "right", x: 51.1, y: 19.2 },
+      { label: "Circadian center", side: "right", x: 52.2, y: 11 },
     ],
-    focus: [50, 12],
+    focus: [49, 11],
   },
   {
     number: "03",
@@ -47,11 +47,11 @@ const systems = [
     copy: "See how stress, safety, relationships, and repeated experience influence what you feel, expect, and choose.",
     fields: ["Stress response", "Emotional regulation", "Social cognition"],
     points: [
-      { label: "Social cognition", side: "left", y: 12 },
-      { label: "Emotional regulation", side: "right", y: 20 },
-      { label: "Stress response", side: "left", y: 31 },
+      { label: "Prefrontal networks", side: "left", x: 46.7, y: 8.3 },
+      { label: "Autonomic pathways", side: "right", x: 52.2, y: 27.1 },
+      { label: "Gut–brain signaling", side: "left", x: 48.5, y: 39 },
     ],
-    focus: [50, 24],
+    focus: [51, 26],
   },
   {
     number: "04",
@@ -61,11 +61,11 @@ const systems = [
     copy: "Build practical literacy around prevention, immune function, hormonal signaling, recovery, and health across a lifetime.",
     fields: ["Immune", "Endocrine", "Recovery"],
     points: [
-      { label: "Immune", side: "left", y: 37 },
-      { label: "Endocrine", side: "right", y: 45 },
-      { label: "Recovery", side: "left", y: 64 },
+      { label: "Immune organs", side: "left", x: 50.2, y: 24.4 },
+      { label: "Endocrine organs", side: "right", x: 50.6, y: 17 },
+      { label: "Recovery tissue", side: "right", x: 58.9, y: 62 },
     ],
-    focus: [50, 45],
+    focus: [51, 25],
   },
 ];
 
@@ -374,7 +374,12 @@ export default function Home() {
               {currentSystem.points.map((point) => (
                 <span
                   className={`atlas-callout atlas-callout-${point.side}`}
-                  style={{ "--callout-y": `${point.y}%` } as CSSProperties}
+                  style={
+                    {
+                      "--callout-x": `${point.x}%`,
+                      "--callout-y": `${point.y}%`,
+                    } as CSSProperties
+                  }
                   key={point.label}
                 >
                   <b>{point.label}</b>
