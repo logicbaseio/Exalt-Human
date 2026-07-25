@@ -1,7 +1,6 @@
 "use client";
 
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import {
   CSSProperties,
@@ -11,11 +10,6 @@ import {
   useState,
 } from "react";
 import OptimizationDispatch from "./components/OptimizationDispatch";
-
-const heroFrames = Array.from(
-  { length: 17 },
-  (_, index) => `/hero-sequence/frame-${String(index).padStart(2, "0")}.webp`,
-);
 
 const systems = [
   {
@@ -123,191 +117,9 @@ const articles = [
 
 export default function Home() {
   const [activeSystem, setActiveSystem] = useState(0);
-  const heroRef = useRef<HTMLElement>(null);
-  const heroStickyRef = useRef<HTMLDivElement>(null);
-  const heroCanvasRef = useRef<HTMLCanvasElement>(null);
   const atlasStageRef = useRef<HTMLDivElement>(null);
   const atlasTabs = useRef<Array<HTMLButtonElement | null>>([]);
   const currentSystem = systems[activeSystem];
-
-  useEffect(() => {
-    const hero = heroRef.current;
-    const canvas = heroCanvasRef.current;
-    if (!hero || !canvas) return;
-
-    const imageMotion = hero.querySelector<HTMLElement>(".hero-image-motion");
-    const messageOne = hero.querySelector<HTMLElement>(".hero-message-one");
-    const messageTwo = hero.querySelector<HTMLElement>(".hero-message-two");
-    const messageThree = hero.querySelector<HTMLElement>(".hero-message-three");
-    const scrollProgress = hero.querySelector<HTMLElement>(
-      ".hero-scroll-progress i",
-    );
-
-    if (
-      !imageMotion ||
-      !messageOne ||
-      !messageTwo ||
-      !messageThree ||
-      !scrollProgress
-    ) {
-      return;
-    }
-
-    gsap.registerPlugin(ScrollTrigger);
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const context = canvas.getContext("2d", { alpha: false });
-    if (!context) return;
-
-    const sequence = heroFrames.map((source) => {
-      const image = new window.Image();
-      image.decoding = "async";
-      image.src = source;
-      return image;
-    });
-    const decoded = new Set<number>();
-    let targetProgress = 0;
-    let renderedFrame = -1;
-    let animationFrame = 0;
-
-    const drawFrame = (force = false) => {
-      animationFrame = 0;
-      const requested = Math.round(targetProgress * (sequence.length - 1));
-      let frameIndex = requested;
-
-      if (!decoded.has(frameIndex)) {
-        for (let distance = 1; distance < sequence.length; distance += 1) {
-          const before = requested - distance;
-          const after = requested + distance;
-          if (before >= 0 && decoded.has(before)) {
-            frameIndex = before;
-            break;
-          }
-          if (after < sequence.length && decoded.has(after)) {
-            frameIndex = after;
-            break;
-          }
-        }
-      }
-
-      const image = sequence[frameIndex];
-      if (!image || !decoded.has(frameIndex) || (!force && frameIndex === renderedFrame)) {
-        return;
-      }
-
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      const outputWidth = Math.round(width * dpr);
-      const outputHeight = Math.round(height * dpr);
-      if (canvas.width !== outputWidth || canvas.height !== outputHeight) {
-        canvas.width = outputWidth;
-        canvas.height = outputHeight;
-      }
-
-      const scale = Math.max(
-        outputWidth / image.naturalWidth,
-        outputHeight / image.naturalHeight,
-      );
-      const drawWidth = image.naturalWidth * scale;
-      const drawHeight = image.naturalHeight * scale;
-      const focalX = window.innerWidth <= 820 ? 0.72 : 0.5;
-      const x = (outputWidth - drawWidth) * focalX;
-      const y = (outputHeight - drawHeight) * 0.5;
-
-      context.clearRect(0, 0, outputWidth, outputHeight);
-      context.drawImage(image, x, y, drawWidth, drawHeight);
-      canvas.dataset.ready = "true";
-      canvas.dataset.frame = String(frameIndex);
-      renderedFrame = frameIndex;
-    };
-
-    const requestDraw = (force = false) => {
-      if (animationFrame) return;
-      animationFrame = window.requestAnimationFrame(() => drawFrame(force));
-    };
-
-    sequence.forEach((image, index) => {
-      const markDecoded = () => {
-        decoded.add(index);
-        requestDraw(true);
-      };
-      image.decode().then(markDecoded).catch(() => {
-        if (image.complete && image.naturalWidth) markDecoded();
-      });
-    });
-    const handleResize = () => {
-      renderedFrame = -1;
-      requestDraw(true);
-    };
-    window.addEventListener("resize", handleResize, { passive: true });
-
-    const scope = gsap.context(() => {
-      const setMessage = (element: HTMLElement, opacity: number) => {
-        gsap.set(element, {
-          opacity,
-          visibility: opacity > 0.015 ? "visible" : "hidden",
-        });
-      };
-      const fadeIn = (progress: number, start: number, end: number) =>
-        gsap.utils.clamp(0, 1, (progress - start) / (end - start));
-      const fadeOut = (progress: number, start: number, end: number) =>
-        1 - fadeIn(progress, start, end);
-
-      gsap.set(scrollProgress, {
-        scaleX: 0,
-        transformOrigin: "left center",
-      });
-
-      if (reduceMotion) {
-        targetProgress = 1;
-        requestDraw(true);
-        setMessage(messageOne, 0);
-        setMessage(messageTwo, 0);
-        setMessage(messageThree, 1);
-        gsap.set(scrollProgress, { scaleX: 1 });
-        return;
-      }
-
-      const setScale = gsap.quickSetter(imageMotion, "scale");
-      const setX = gsap.quickSetter(imageMotion, "xPercent");
-      const setY = gsap.quickSetter(imageMotion, "yPercent");
-      const render = (progress: number) => {
-        targetProgress = progress;
-        requestDraw();
-        setScale(1 + progress * 0.045);
-        setX(progress * -0.8);
-        setY(progress * -0.35);
-        gsap.set(scrollProgress, { scaleX: progress });
-
-        setMessage(messageOne, fadeOut(progress, 0.22, 0.28));
-        setMessage(
-          messageTwo,
-          Math.min(
-            fadeIn(progress, 0.3, 0.36),
-            fadeOut(progress, 0.58, 0.64),
-          ),
-        );
-        setMessage(messageThree, fadeIn(progress, 0.66, 0.72));
-      };
-
-      render(0);
-      ScrollTrigger.create({
-        trigger: hero,
-        start: "top top",
-        end: "bottom bottom",
-        invalidateOnRefresh: true,
-        onUpdate: (self) => render(self.progress),
-      });
-    }, hero);
-
-    return () => {
-      scope.revert();
-      window.removeEventListener("resize", handleResize);
-      if (animationFrame) window.cancelAnimationFrame(animationFrame);
-    };
-  }, []);
 
   useEffect(() => {
     const stage = atlasStageRef.current;
@@ -414,127 +226,124 @@ export default function Home() {
   return (
     <main>
       <section
-        className="hero is-active"
+        className="hero"
         id="top"
         aria-labelledby="hero-title"
-        ref={heroRef}
       >
-        <div className="hero-sticky" ref={heroStickyRef}>
-          <header className="site-header">
-            <a className="wordmark" href="#top" aria-label="Exalt Human home">
-              <Image
-                className="brand-logo"
-                src="/branding/logo-full-light.webp"
-                alt=""
-                width={196}
-                height={51}
-                priority
-                unoptimized
-              />
-            </a>
+        <header className="site-header">
+          <a className="wordmark" href="#top" aria-label="Exalt Human home">
+            <Image
+              className="brand-logo"
+              src="/branding/logo-full-light.webp"
+              alt=""
+              width={196}
+              height={51}
+              priority
+              unoptimized
+            />
+          </a>
 
-            <nav className="desktop-nav" aria-label="Primary navigation">
+          <nav className="desktop-nav" aria-label="Primary navigation">
+            <a href="#atlas">Human Atlas</a>
+            <a href="#research">Research</a>
+            <a href="#standard">Our standard</a>
+          </nav>
+
+          <a className="header-link" href="#research">
+            Explore <span aria-hidden="true">↗</span>
+          </a>
+
+          <details className="mobile-nav">
+            <summary aria-label="Open navigation">
+              <span />
+              <span />
+            </summary>
+            <nav aria-label="Mobile navigation">
               <a href="#atlas">Human Atlas</a>
-              <a href="#research">Research</a>
-              <a href="#standard">Our standard</a>
+              <a href="#research">Research journal</a>
+              <a href="#standard">Research standard</a>
+              <a href="#newsletter">The Dispatch</a>
             </nav>
+          </details>
+        </header>
 
-            <a className="header-link" href="#research">
-              Explore <span aria-hidden="true">↗</span>
-            </a>
-
-            <details className="mobile-nav">
-              <summary aria-label="Open navigation">
-                <span />
-                <span />
-              </summary>
-              <nav aria-label="Mobile navigation">
-                <a href="#atlas">Human Atlas</a>
-                <a href="#research">Research journal</a>
-                <a href="#standard">Research standard</a>
-                <a href="#newsletter">The Dispatch</a>
-              </nav>
-            </details>
-          </header>
-
-          <div className="hero-media" aria-hidden="true">
-            <div className="hero-image-motion">
+        <div className="hero-media" aria-hidden="true">
+          <div className="hero-anatomy">
+            <Image
+              className="hero-anatomy-base"
+              src="/hero-sequence/frame-16.webp"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              unoptimized
+            />
+            <div className="hero-anatomy-reveal">
               <Image
-                className="hero-sequence-poster"
-                src={heroFrames[0]}
+                className="hero-anatomy-color"
+                src="/hero-sequence/frame-16.webp"
                 alt=""
                 fill
                 priority
                 sizes="100vw"
                 unoptimized
               />
-              <canvas ref={heroCanvasRef} className="hero-sequence-canvas" />
             </div>
-            <div className="hero-vignette" />
-          </div>
-
-          <h1 className="sr-only" id="hero-title">
-            Understand the one adaptive human system that carries every thought,
-            behavior, and experience.
-          </h1>
-
-          <div className="hero-content shell">
-            <div className="hero-message hero-message-one" aria-hidden="true">
-              <p className="signal-label">
-                <span />
-                01 · Independent human science
-              </p>
-              <p className="hero-display">
-                The most important system you&apos;ll ever understand is your own.
-              </p>
-              <div className="hero-intro">
-                <p>
-                  Exalt Human turns biology, psychology, and health research into
-                  clear knowledge for living better.
-                </p>
-                <span>
-                  Scroll to examine <i>↓</i>
-                </span>
-              </div>
+            <div className="hero-scan-beam" />
+            <div className="hero-signal hero-signal-brain">
+              <i />
+              <span>Neural activity</span>
             </div>
-
-            <div className="hero-message hero-message-two" aria-hidden="true">
-              <p className="signal-label">02 · Integration</p>
-              <p className="hero-display">
-                The body is not a collection of parts.
-              </p>
-              <p className="hero-message-copy">
-                Every organ, signal, and behavior belongs to one adaptive
-                system.
-              </p>
-            </div>
-
-            <div className="hero-message hero-message-three" aria-hidden="true">
-              <p className="signal-label">03 · Elevation</p>
-              <p className="hero-display">
-                Understand the system. Elevate the whole.
-              </p>
-              <p className="hero-message-copy">
-                Optimization begins by seeing how body, mind, psychology, and
-                health move together.
-              </p>
+            <div className="hero-signal hero-signal-heart">
+              <i />
+              <span>Cardiac activity</span>
             </div>
           </div>
+          <div className="hero-grid" />
+          <div className="hero-vignette" />
+        </div>
 
-          <a className="hero-skip" href="#thesis">
-            Skip interactive introduction <span aria-hidden="true">↓</span>
-          </a>
+        <div className="hero-content shell">
+          <div className="hero-copy">
+            <p className="signal-label">
+              <span />
+              01 · Human operating system
+            </p>
+            <h1 className="hero-display" id="hero-title">
+              Your body is the technology. Learn to operate it.
+            </h1>
+            <p className="hero-message-copy">
+              Independent, evidence-led intelligence for optimizing body, mind,
+              psychology, health, and human potential.
+            </p>
+            <div className="hero-actions">
+              <a className="hero-action-primary" href="#atlas">
+                Explore the Human Atlas <span aria-hidden="true">↘</span>
+              </a>
+              <a className="hero-action-secondary" href="#research">
+                Read the research <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
 
-          <div className="hero-scroll-progress" aria-hidden="true">
-            <span>01</span>
+        <div className="hero-axis shell" aria-hidden="true">
+          <div className="hero-domains">
+            <span>Body</span>
+            <span>Mind</span>
+            <span>Psychology</span>
+            <span>Health</span>
+            <span>Spirit</span>
+          </div>
+          <div className="hero-live-state">
             <i />
-            <span>03</span>
+            <span>Live anatomical map</span>
           </div>
+        </div>
 
-          <div className="hero-figure-label" aria-hidden="true">
-            <span>FIG. 001</span>
-            <span>HUMAN SYSTEM</span>
-          </div>
+        <div className="hero-figure-label" aria-hidden="true">
+          <span>FIG. 001</span>
+          <span>HUMAN SYSTEM</span>
         </div>
       </section>
 

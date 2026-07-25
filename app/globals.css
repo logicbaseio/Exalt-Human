@@ -91,18 +91,11 @@ a {
 
 .hero {
   position: relative;
-  height: 220svh;
-  background: var(--ink);
-  color: white;
-  isolation: isolate;
-}
-
-.hero-sticky {
-  position: sticky;
-  top: 0;
   height: 100svh;
+  min-height: 720px;
   overflow: hidden;
   background: var(--ink);
+  color: white;
   isolation: isolate;
 }
 
@@ -168,122 +161,155 @@ a {
 }
 
 .hero-media,
-.hero-image-motion {
+.hero-anatomy,
+.hero-anatomy-reveal {
   position: absolute;
   inset: 0;
 }
 
-.hero-image-motion {
-  inset: -1.5%;
-  transform-origin: 70% 46%;
-  will-change: transform;
+.hero-media {
+  overflow: hidden;
 }
 
-.hero-sequence-poster,
-.hero-sequence-canvas {
+.hero-anatomy {
+  inset: -1.2%;
+}
+
+.hero-anatomy-base,
+.hero-anatomy-color {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-}
-
-.hero-sequence-poster {
   object-fit: cover;
   object-position: center;
   user-select: none;
 }
 
-.hero-sequence-canvas {
+.hero-anatomy-base {
+  filter: grayscale(0.78) saturate(0.36) brightness(0.54) contrast(1.18);
+}
+
+.hero-anatomy-reveal {
   z-index: 1;
-  opacity: 0;
-  transition: opacity 120ms linear;
-}
-
-.hero-sequence-canvas[data-ready="true"] {
-  opacity: 1;
-}
-
-.hero-organ-glow {
-  position: absolute;
-  z-index: 2;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--signal);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.hero-brain-glow {
-  top: 17%;
-  left: 70.2%;
-  animation: brain-signal 7.2s ease-out infinite;
-}
-
-.hero-heart-glow {
-  top: 80%;
-  left: 69.4%;
-  animation: heart-signal 7.2s ease-out infinite;
-}
-
-.hero-neural-path {
-  position: absolute;
-  z-index: 2;
-  top: 18.5%;
-  left: 70.3%;
-  width: 1px;
-  height: 61.5%;
-  overflow: hidden;
-  background: linear-gradient(
+  -webkit-mask-image: linear-gradient(
     to bottom,
-    rgba(240, 68, 62, 0.08),
-    rgba(240, 68, 62, 0.26),
-    rgba(240, 68, 62, 0.08)
+    transparent 30%,
+    #000 44%,
+    #000 58%,
+    transparent 72%
   );
-  opacity: 0.62;
-  transform: rotate(-0.8deg);
-  transform-origin: top;
-  pointer-events: none;
-}
-
-.hero-neural-path i {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
+  -webkit-mask-position: 0 -115%;
+  -webkit-mask-size: 100% 260%;
+  mask-image: linear-gradient(
     to bottom,
-    transparent,
-    rgba(255, 141, 130, 0.95),
-    transparent
+    transparent 30%,
+    #000 44%,
+    #000 58%,
+    transparent 72%
   );
-  transform: translateY(-110%);
-  animation: neural-travel 7.2s cubic-bezier(0.42, 0, 0.35, 1) infinite;
+  mask-position: 0 -115%;
+  mask-size: 100% 260%;
+  will-change: mask-position, -webkit-mask-position;
+  animation: hero-anatomy-reveal 8s cubic-bezier(0.45, 0, 0.2, 1) infinite;
 }
 
-.hero-scan {
+.hero-anatomy-color {
+  filter: saturate(0.95) contrast(1.08) brightness(0.92);
+}
+
+.hero-scan-beam {
   position: absolute;
   z-index: 3;
-  top: -14%;
-  right: 3%;
-  left: 44%;
-  height: 14%;
+  top: 11%;
+  right: 1.5%;
+  left: 45%;
+  height: 1px;
   background: linear-gradient(
-    to bottom,
+    90deg,
     transparent,
-    rgba(255, 255, 255, 0.025) 45%,
-    rgba(255, 255, 255, 0.09) 50%,
-    transparent 56%
+    rgba(255, 70, 50, 0.24) 12%,
+    rgba(255, 133, 119, 0.95) 54%,
+    rgba(255, 70, 50, 0.24) 88%,
+    transparent
   );
-  filter: blur(0.4px);
+  box-shadow:
+    0 -10px 30px rgba(241, 52, 15, 0.09),
+    0 10px 30px rgba(241, 52, 15, 0.09);
   opacity: 0;
-  animation: anatomy-scan 11s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+  animation: hero-scan-beam 8s cubic-bezier(0.45, 0, 0.2, 1) infinite;
   pointer-events: none;
 }
 
-.hero:not(.is-active) .hero-organ-glow,
-.hero:not(.is-active) .hero-neural-path i,
-.hero:not(.is-active) .hero-scan {
-  animation-play-state: paused;
+.hero-signal {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.54);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.hero-signal::before {
+  width: 44px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28));
+  content: "";
+}
+
+.hero-signal i {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 18px rgba(241, 52, 15, 0.82);
+  animation: hero-organ-pulse 2.6s ease-out infinite;
+}
+
+.hero-signal i::after {
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(241, 52, 15, 0.42);
+  border-radius: inherit;
+  content: "";
+  animation: signal-pulse 2.6s ease-out infinite;
+}
+
+.hero-signal-brain {
+  top: 19%;
+  left: 70%;
+}
+
+.hero-signal-heart {
+  top: 79%;
+  left: 69%;
+}
+
+.hero-signal-heart i,
+.hero-signal-heart i::after {
+  animation-delay: 1.15s;
+}
+
+.hero-grid {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.042) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.042) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.15;
+  -webkit-mask-image: linear-gradient(90deg, transparent 34%, #000 75%);
+  mask-image: linear-gradient(90deg, transparent 34%, #000 75%);
+  pointer-events: none;
 }
 
 .hero-vignette {
@@ -294,35 +320,27 @@ a {
     linear-gradient(
       90deg,
       rgba(5, 6, 8, 0.98) 0%,
-      rgba(5, 6, 8, 0.83) 34%,
-      rgba(5, 6, 8, 0.12) 66%,
+      rgba(5, 6, 8, 0.92) 29%,
+      rgba(5, 6, 8, 0.54) 46%,
+      rgba(5, 6, 8, 0.08) 67%,
       rgba(5, 6, 8, 0.05) 100%
     ),
-    linear-gradient(0deg, rgba(4, 5, 7, 0.55), transparent 40%);
+    linear-gradient(0deg, rgba(4, 5, 7, 0.72), transparent 38%),
+    radial-gradient(circle at 73% 48%, transparent 22%, rgba(4, 5, 7, 0.26) 70%);
   pointer-events: none;
 }
 
 .hero-content {
-  position: absolute;
+  position: relative;
   z-index: 6;
-  inset: 0;
   height: 100%;
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  padding-top: 46px;
 }
 
-.hero-message {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: min(660px, 47vw);
-  transform: translateY(-50%);
-  will-change: opacity;
-}
-
-.hero-message-two,
-.hero-message-three {
-  opacity: 0;
-  visibility: hidden;
+.hero-copy {
+  width: min(690px, 49vw);
 }
 
 .signal-label {
@@ -352,98 +370,112 @@ a {
 }
 
 .hero-display {
-  max-width: 660px;
+  max-width: 690px;
   margin: 0;
-  font-size: clamp(3.6rem, 5.4vw, 6.35rem);
+  font-size: clamp(3.7rem, 5.55vw, 6.6rem);
   font-weight: 520;
   letter-spacing: -0.068em;
   line-height: 0.92;
   text-wrap: balance;
 }
 
-.hero-intro {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 42px;
-  width: min(600px, 100%);
-  margin-top: 34px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line-dark);
-}
-
-.hero-intro p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.hero-intro > span {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  font-size: 13px;
-}
-
-.hero-intro > span i {
-  color: var(--signal);
-  font-style: normal;
-}
-
 .hero-message-copy {
   max-width: 520px;
-  margin: 28px 0 0;
+  margin: 30px 0 0;
   color: rgba(255, 255, 255, 0.68);
-  font-size: 17px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.62;
 }
 
-.hero-skip {
-  position: absolute;
-  z-index: 8;
-  bottom: 28px;
-  left: 24px;
-  display: inline-flex;
-  gap: 16px;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.56);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: color 180ms ease;
-}
-
-.hero-skip:hover,
-.hero-skip:focus-visible {
-  color: white;
-}
-
-.hero-skip span {
-  color: var(--signal);
-}
-
-.hero-scroll-progress {
-  position: absolute;
-  z-index: 7;
-  right: 24px;
-  bottom: 56px;
+.hero-actions {
   display: flex;
   gap: 12px;
   align-items: center;
-  color: rgba(255, 255, 255, 0.36);
-  font-family: var(--font-geist-mono), monospace;
-  font-size: 8px;
-  letter-spacing: 0.08em;
+  margin-top: 34px;
 }
 
-.hero-scroll-progress i {
-  width: 84px;
-  height: 1px;
-  background: linear-gradient(90deg, var(--signal), rgba(255, 255, 255, 0.2));
-  transform: scaleX(0);
-  transform-origin: left;
+.hero-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+  padding: 0 17px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 12px;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.hero-actions a span {
+  margin-left: 22px;
+  color: var(--signal);
+}
+
+.hero-action-primary {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+}
+
+.hero-action-primary:hover,
+.hero-action-primary:focus-visible {
+  background: white;
+  border-color: white;
+}
+
+.hero-action-secondary {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.hero-action-secondary:hover,
+.hero-action-secondary:focus-visible {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.46);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hero-axis {
+  position: absolute;
+  z-index: 8;
+  right: 0;
+  bottom: 26px;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero-domains {
+  display: flex;
+  gap: 19px;
+}
+
+.hero-domains span + span::before {
+  margin-right: 19px;
+  color: var(--signal);
+  content: "/";
+}
+
+.hero-live-state {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin-right: 178px;
+}
+
+.hero-live-state i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 14px rgba(241, 52, 15, 0.78);
+  animation: hero-organ-pulse 2.6s ease-out infinite;
 }
 
 .hero-figure-label {
@@ -1342,85 +1374,58 @@ a {
   color: white;
 }
 
-@keyframes anatomy-scan {
-  0%,
-  69% {
+@keyframes hero-anatomy-reveal {
+  0% {
+    -webkit-mask-position: 0 -115%;
+    mask-position: 0 -115%;
+  }
+  48%,
+  56% {
+    -webkit-mask-position: 0 25%;
+    mask-position: 0 25%;
+  }
+  100% {
+    -webkit-mask-position: 0 150%;
+    mask-position: 0 150%;
+  }
+}
+
+@keyframes hero-scan-beam {
+  0% {
     opacity: 0;
     transform: translateY(0);
   }
-  72% {
-    opacity: 0.5;
+  7% {
+    opacity: 0.72;
   }
-  88% {
-    opacity: 0.35;
-    transform: translateY(790%);
+  48%,
+  56% {
+    opacity: 0.82;
+    transform: translateY(38svh);
   }
-  91%,
+  94% {
+    opacity: 0.58;
+  }
   100% {
     opacity: 0;
-    transform: translateY(790%);
+    transform: translateY(76svh);
   }
 }
 
-@keyframes brain-signal {
+@keyframes hero-organ-pulse {
   0%,
-  9%,
+  60%,
   100% {
-    opacity: 0;
-    box-shadow: 0 0 0 0 rgba(240, 68, 62, 0);
+    opacity: 0.56;
+    transform: scale(0.82);
   }
-  12% {
-    opacity: 0.88;
-    box-shadow: 0 0 0 9px rgba(240, 68, 62, 0.13);
-  }
-  18% {
-    opacity: 0.3;
-    box-shadow: 0 0 0 16px rgba(240, 68, 62, 0);
-  }
-}
-
-@keyframes neural-travel {
-  0%,
-  15% {
-    opacity: 0;
-    transform: translateY(-110%);
-  }
-  20% {
-    opacity: 0.9;
-  }
-  42% {
-    opacity: 0.75;
-    transform: translateY(110%);
-  }
-  47%,
-  100% {
-    opacity: 0;
-    transform: translateY(110%);
-  }
-}
-
-@keyframes heart-signal {
-  0%,
-  40%,
-  100% {
-    opacity: 0;
-    box-shadow: 0 0 0 0 rgba(240, 68, 62, 0);
-  }
-  44% {
+  67% {
     opacity: 1;
-    box-shadow: 0 0 0 0 rgba(240, 68, 62, 0.38);
+    transform: scale(1.15);
   }
-  50% {
-    opacity: 0.52;
-    box-shadow: 0 0 0 15px rgba(240, 68, 62, 0);
-  }
-  54% {
-    opacity: 0.95;
-    box-shadow: 0 0 0 0 rgba(240, 68, 62, 0.25);
-  }
-  61% {
-    opacity: 0;
-    box-shadow: 0 0 0 12px rgba(240, 68, 62, 0);
+  74% {
+    opacity: 0.62;
+    transform: scale(0.92);
   }
 }
 
@@ -2144,31 +2149,21 @@ a {
   }
 
   .hero {
-    height: 190svh;
-    min-height: 0;
+    height: 100svh;
+    min-height: 700px;
   }
 
-  .hero-image-motion {
-    inset: -1%;
+  .hero-anatomy {
+    inset: 0;
   }
 
-  .hero-sequence-poster {
+  .hero-anatomy-base,
+  .hero-anatomy-color {
     object-position: 72% center;
   }
 
-  .hero-scan,
-  .hero-neural-path {
+  .hero-signal {
     display: none;
-  }
-
-  .hero-brain-glow {
-    top: 29%;
-    left: 70%;
-  }
-
-  .hero-heart-glow {
-    top: 72%;
-    left: 67%;
   }
 
   .hero-vignette {
@@ -2176,22 +2171,20 @@ a {
       linear-gradient(
         90deg,
         rgba(14, 14, 14, 0.98) 0%,
-        rgba(14, 14, 14, 0.9) 52%,
-        rgba(14, 14, 14, 0.16) 88%,
+        rgba(14, 14, 14, 0.93) 48%,
+        rgba(14, 14, 14, 0.54) 72%,
         rgba(14, 14, 14, 0.06) 100%
       ),
-      linear-gradient(0deg, rgba(14, 14, 14, 0.52), transparent 42%);
+      linear-gradient(0deg, rgba(14, 14, 14, 0.68), transparent 44%);
   }
 
   .hero-content {
     height: 100%;
+    padding-top: 54px;
   }
 
-  .hero-message {
-    top: 50%;
-    bottom: auto;
-    width: min(88%, 520px);
-    transform: translateY(-50%);
+  .hero-copy {
+    width: min(88%, 540px);
   }
 
   .signal-label {
@@ -2200,19 +2193,8 @@ a {
 
   .hero-display {
     max-width: 520px;
-    font-size: clamp(2.9rem, 11vw, 4.7rem);
+    font-size: clamp(3rem, 10.4vw, 4.8rem);
     line-height: 0.94;
-  }
-
-  .hero-intro {
-    grid-template-columns: 1fr;
-    gap: 18px;
-    width: 100%;
-    margin-top: 24px;
-  }
-
-  .hero-intro p {
-    max-width: 420px;
   }
 
   .hero-figure-label {
@@ -2225,16 +2207,33 @@ a {
     font-size: 15px;
   }
 
-  .hero-skip {
-    bottom: 22px;
-    left: 16px;
-    max-width: 180px;
-    line-height: 1.4;
+  .hero-actions {
+    align-items: stretch;
+    width: min(100%, 420px);
   }
 
-  .hero-scroll-progress {
-    right: 16px;
-    bottom: 22px;
+  .hero-actions a {
+    flex: 1;
+  }
+
+  .hero-axis {
+    bottom: 20px;
+  }
+
+  .hero-domains {
+    gap: 10px;
+  }
+
+  .hero-domains span:nth-child(n + 4) {
+    display: none;
+  }
+
+  .hero-domains span + span::before {
+    margin-right: 10px;
+  }
+
+  .hero-live-state {
+    margin-right: 0;
   }
 
   .thesis,
@@ -2603,15 +2602,52 @@ a {
 
 @media (max-width: 450px) {
   .hero {
-    height: 185svh;
+    height: 100svh;
+    min-height: 680px;
   }
 
-  .hero-image-motion {
-    inset: 0;
-  }
-
-  .hero-sequence-poster {
+  .hero-anatomy-base,
+  .hero-anatomy-color {
     object-position: 74% center;
+  }
+
+  .hero-content {
+    align-items: flex-end;
+    padding-top: 84px;
+    padding-bottom: 98px;
+  }
+
+  .hero-copy {
+    width: 100%;
+  }
+
+  .hero-display {
+    max-width: 350px;
+    font-size: clamp(2.7rem, 13vw, 3.65rem);
+  }
+
+  .hero-message-copy {
+    max-width: 350px;
+    margin-top: 20px;
+    font-size: 14px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: min(100%, 330px);
+    margin-top: 24px;
+  }
+
+  .hero-actions a {
+    min-height: 43px;
+  }
+
+  .hero-domains span:nth-child(n + 3) {
+    display: none;
+  }
+
+  .hero-scan-beam {
+    left: 42%;
   }
 
   .atlas-tabs {
@@ -2649,34 +2685,17 @@ a {
     transition-duration: 0.01ms !important;
   }
 
-  .hero-image-motion {
-    transform: none;
-  }
-
   .hero {
-    height: auto;
+    height: 100svh;
     min-height: 100svh;
   }
 
-  .hero-sticky {
-    position: relative;
-    height: 100svh;
-    min-height: 720px;
+  .hero-anatomy-reveal {
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
-  .hero-message-one,
-  .hero-message-two {
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  .hero-message-three {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .hero-skip,
-  .hero-scroll-progress {
+  .hero-scan-beam {
     display: none;
   }
 }
