@@ -1,5 +1,7 @@
 "use client";
 
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import {
   CSSProperties,
@@ -72,6 +74,7 @@ const systems = [
 const articles = [
   {
     className: "story story-lead",
+    slug: "sleep-is-the-foundation",
     category: "Sleep",
     title: "Sleep is the foundation. Everything else is downstream.",
     summary:
@@ -85,6 +88,7 @@ const articles = [
   },
   {
     className: "story story-nervous",
+    slug: "your-nervous-system-is-always-listening",
     category: "Nervous system",
     title: "Your nervous system is always listening.",
     summary:
@@ -98,6 +102,7 @@ const articles = [
   },
   {
     className: "story story-metabolism",
+    slug: "metabolism-is-more-than-calories",
     category: "Metabolism",
     title: "Metabolism is more than calories.",
     summary:
@@ -115,12 +120,14 @@ export default function Home() {
   const [activeSystem, setActiveSystem] = useState(0);
   const [subscribed, setSubscribed] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
+  const heroStickyRef = useRef<HTMLDivElement>(null);
   const atlasTabs = useRef<Array<HTMLButtonElement | null>>([]);
   const currentSystem = systems[activeSystem];
 
   useEffect(() => {
     const hero = heroRef.current;
-    if (!hero) return;
+    const sticky = heroStickyRef.current;
+    if (!hero || !sticky) return;
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -136,7 +143,7 @@ export default function Home() {
       if (event.pointerType !== "mouse") return;
       cancelAnimationFrame(animationFrame);
       animationFrame = requestAnimationFrame(() => {
-        const bounds = hero.getBoundingClientRect();
+        const bounds = sticky.getBoundingClientRect();
         const x = (event.clientX - bounds.left) / bounds.width - 0.5;
         const y = (event.clientY - bounds.top) / bounds.height - 0.5;
         hero.style.setProperty("--hero-x", `${x * 9}px`);
@@ -155,15 +162,227 @@ export default function Home() {
     );
 
     observer.observe(hero);
-    hero.addEventListener("pointermove", moveImage);
-    hero.addEventListener("pointerleave", resetImage);
+    sticky.addEventListener("pointermove", moveImage);
+    sticky.addEventListener("pointerleave", resetImage);
 
     return () => {
       cancelAnimationFrame(animationFrame);
       observer.disconnect();
-      hero.removeEventListener("pointermove", moveImage);
-      hero.removeEventListener("pointerleave", resetImage);
+      sticky.removeEventListener("pointermove", moveImage);
+      sticky.removeEventListener("pointerleave", resetImage);
     };
+  }, []);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const sideBody = hero.querySelector<HTMLElement>(".hero-body-side");
+    const frontBody = hero.querySelector<HTMLElement>(".hero-body-front");
+    const messageOne = hero.querySelector<HTMLElement>(".hero-message-one");
+    const messageTwo = hero.querySelector<HTMLElement>(".hero-message-two");
+    const messageThree = hero.querySelector<HTMLElement>(".hero-message-three");
+    const scrollProgress = hero.querySelector<HTMLElement>(
+      ".hero-scroll-progress i",
+    );
+    const signalLayers = hero.querySelectorAll<HTMLElement>(
+      ".hero-organ-glow, .hero-neural-path",
+    );
+
+    if (
+      !sideBody ||
+      !frontBody ||
+      !messageOne ||
+      !messageTwo ||
+      !messageThree ||
+      !scrollProgress
+    ) {
+      return;
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+    const media = gsap.matchMedia();
+
+    media.add(
+      {
+        desktop: "(min-width: 821px)",
+        mobile: "(max-width: 820px)",
+        reduce: "(prefers-reduced-motion: reduce)",
+      },
+      (context) => {
+        const conditions = context.conditions as {
+          desktop?: boolean;
+          mobile?: boolean;
+          reduce?: boolean;
+        };
+        const desktop = Boolean(conditions.desktop);
+        const reduce = Boolean(conditions.reduce);
+
+        const scope = gsap.context(() => {
+          if (reduce) {
+            gsap.set(sideBody, { autoAlpha: 0 });
+            gsap.set(frontBody, {
+              autoAlpha: 1,
+              clearProps: "transform,filter",
+            });
+            gsap.set([messageOne, messageTwo], { autoAlpha: 0 });
+            gsap.set(messageThree, { autoAlpha: 1, yPercent: 0 });
+            gsap.set(scrollProgress, { scaleX: 1 });
+            return;
+          }
+
+          gsap.set(sideBody, {
+            autoAlpha: 1,
+            x: desktop ? "3vw" : "1vw",
+            scale: desktop ? 1.045 : 1.02,
+            rotationY: 0,
+          });
+          gsap.set(frontBody, {
+            autoAlpha: 0,
+            x: desktop ? "1.5vw" : 0,
+            scale: 1.025,
+            rotationY: desktop ? -8 : 0,
+          });
+          gsap.set([messageOne, messageTwo, messageThree], {
+            autoAlpha: 0,
+            yPercent: desktop ? 14 : 8,
+          });
+          gsap.set(messageOne, { autoAlpha: 1, yPercent: 0 });
+          gsap.set(scrollProgress, {
+            scaleX: 0,
+            transformOrigin: "left center",
+          });
+
+          const timeline = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: hero,
+              start: "top top",
+              end: "bottom bottom",
+              scrub: desktop ? 0.7 : 0.35,
+              invalidateOnRefresh: true,
+              fastScrollEnd: true,
+            },
+          });
+
+          timeline.to(
+            sideBody,
+            {
+              x: 0,
+              scale: 1,
+              duration: 0.08,
+              ease: "power2.out",
+            },
+            0,
+          );
+          timeline.to(
+            scrollProgress,
+            { scaleX: 1, duration: 1 },
+            0,
+          );
+          timeline.to(
+            messageOne,
+            {
+              autoAlpha: 0,
+              yPercent: desktop ? -12 : -8,
+              duration: 0.12,
+              ease: "power2.inOut",
+            },
+            0.24,
+          );
+          timeline.to(
+            sideBody,
+            {
+              autoAlpha: 0,
+              rotationY: desktop ? 13 : 0,
+              x: desktop ? "-2vw" : 0,
+              scale: 1.018,
+              filter: desktop ? "blur(2px)" : "blur(0px)",
+              duration: 0.22,
+              ease: "power1.inOut",
+            },
+            0.3,
+          );
+          timeline.to(
+            frontBody,
+            {
+              autoAlpha: 1,
+              rotationY: 0,
+              x: 0,
+              scale: 1,
+              filter: "blur(0px)",
+              duration: 0.22,
+              ease: "power1.inOut",
+            },
+            0.3,
+          );
+          timeline.to(
+            signalLayers,
+            { autoAlpha: 0, duration: 0.16 },
+            0.3,
+          );
+          timeline.to(
+            messageTwo,
+            {
+              autoAlpha: 1,
+              yPercent: 0,
+              duration: 0.07,
+              ease: "power2.out",
+            },
+            0.4,
+          );
+          timeline.to(
+            messageTwo,
+            {
+              autoAlpha: 0,
+              yPercent: desktop ? -12 : -8,
+              duration: 0.09,
+              ease: "power2.inOut",
+            },
+            0.63,
+          );
+          timeline.to(
+            frontBody,
+            {
+              scale: desktop ? 1.018 : 1.008,
+              duration: 0.15,
+              ease: "power1.inOut",
+            },
+            0.63,
+          );
+          timeline.to(
+            messageThree,
+            {
+              autoAlpha: 1,
+              yPercent: 0,
+              duration: 0.09,
+              ease: "power2.out",
+            },
+            0.7,
+          );
+          timeline.to(
+            [messageThree, frontBody],
+            {
+              y: desktop ? "-3vh" : "-1.5vh",
+              duration: 0.07,
+              ease: "power1.in",
+            },
+            0.93,
+          );
+        }, hero);
+
+        return () => scope.revert();
+      },
+    );
+
+    const images = Array.from(
+      hero.querySelectorAll<HTMLImageElement>(".hero-body-layer img"),
+    );
+    Promise.all(images.map((image) => image.decode().catch(() => undefined))).then(
+      () => ScrollTrigger.refresh(),
+    );
+
+    return () => media.revert();
   }, []);
 
   function handleSubscribe(event: FormEvent<HTMLFormElement>) {
@@ -200,82 +419,133 @@ export default function Home() {
         aria-labelledby="hero-title"
         ref={heroRef}
       >
-        <header className="site-header">
-          <a className="wordmark" href="#top" aria-label="Exalt Human home">
-            <span>EXALT</span>
-            <i aria-hidden="true" />
-            <span>HUMAN</span>
-          </a>
-
-          <nav className="desktop-nav" aria-label="Primary navigation">
-            <a href="#atlas">Human Atlas</a>
-            <a href="#research">Research</a>
-            <a href="#standard">Our standard</a>
-          </nav>
-
-          <a className="header-link" href="#research">
-            Explore <span aria-hidden="true">↗</span>
-          </a>
-
-          <details className="mobile-nav">
-            <summary aria-label="Open navigation">
-              <span />
-              <span />
-            </summary>
-            <nav aria-label="Mobile navigation">
-              <a href="#atlas">Human Atlas</a>
-              <a href="#research">Research journal</a>
-              <a href="#standard">Research standard</a>
-              <a href="#newsletter">The Dispatch</a>
-            </nav>
-          </details>
-        </header>
-
-        <div className="hero-media" aria-hidden="true">
-          <div className="hero-image-motion">
-            <Image
-              src="/human-system-hero.png"
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-            />
-          </div>
-          <div className="hero-organ-glow hero-brain-glow" />
-          <div className="hero-neural-path">
-            <i />
-          </div>
-          <div className="hero-organ-glow hero-heart-glow" />
-          <div className="hero-scan" />
-          <div className="hero-vignette" />
-        </div>
-
-        <div className="hero-content shell">
-          <p className="signal-label">
-            <span aria-hidden="true" />
-            Independent human science
-          </p>
-          <h1 id="hero-title">
-            The most important system you&apos;ll ever understand is your own.
-          </h1>
-          <div className="hero-intro">
-            <p>
-              Exalt Human turns biology, psychology, and health research into
-              clear knowledge for living better.
-            </p>
-            <a href="#atlas">
-              Enter the Human Atlas <span aria-hidden="true">↓</span>
+        <div className="hero-sticky" ref={heroStickyRef}>
+          <header className="site-header">
+            <a className="wordmark" href="#top" aria-label="Exalt Human home">
+              <span>EXALT</span>
+              <i aria-hidden="true" />
+              <span>HUMAN</span>
             </a>
-          </div>
-        </div>
 
-        <div className="hero-figure-label" aria-hidden="true">
-          <span>FIG. 001</span>
-          <span>HUMAN SYSTEM</span>
+            <nav className="desktop-nav" aria-label="Primary navigation">
+              <a href="#atlas">Human Atlas</a>
+              <a href="#research">Research</a>
+              <a href="#standard">Our standard</a>
+            </nav>
+
+            <a className="header-link" href="#research">
+              Explore <span aria-hidden="true">↗</span>
+            </a>
+
+            <details className="mobile-nav">
+              <summary aria-label="Open navigation">
+                <span />
+                <span />
+              </summary>
+              <nav aria-label="Mobile navigation">
+                <a href="#atlas">Human Atlas</a>
+                <a href="#research">Research journal</a>
+                <a href="#standard">Research standard</a>
+                <a href="#newsletter">The Dispatch</a>
+              </nav>
+            </details>
+          </header>
+
+          <div className="hero-media" aria-hidden="true">
+            <div className="hero-image-motion">
+              <div className="hero-body-layer hero-body-side">
+                <Image
+                  src="/human-system-hero.png"
+                  alt=""
+                  fill
+                  priority
+                  sizes="100vw"
+                />
+              </div>
+              <div className="hero-body-layer hero-body-front">
+                <Image
+                  src="/human-system-hero-front.png"
+                  alt=""
+                  fill
+                  sizes="100vw"
+                />
+              </div>
+            </div>
+            <div className="hero-organ-glow hero-brain-glow" />
+            <div className="hero-neural-path">
+              <i />
+            </div>
+            <div className="hero-organ-glow hero-heart-glow" />
+            <div className="hero-scan" />
+            <div className="hero-vignette" />
+          </div>
+
+          <h1 className="sr-only" id="hero-title">
+            Understand the one adaptive human system that carries every thought,
+            behavior, and experience.
+          </h1>
+
+          <div className="hero-content shell">
+            <div className="hero-message hero-message-one" aria-hidden="true">
+              <p className="signal-label">
+                <span />
+                01 · Independent human science
+              </p>
+              <p className="hero-display">
+                The most important system you&apos;ll ever understand is your own.
+              </p>
+              <div className="hero-intro">
+                <p>
+                  Exalt Human turns biology, psychology, and health research into
+                  clear knowledge for living better.
+                </p>
+                <span>
+                  Scroll to examine <i>↓</i>
+                </span>
+              </div>
+            </div>
+
+            <div className="hero-message hero-message-two" aria-hidden="true">
+              <p className="signal-label">02 · Integration</p>
+              <p className="hero-display">
+                The body is not a collection of parts.
+              </p>
+              <p className="hero-message-copy">
+                Every organ, signal, and behavior belongs to one adaptive
+                system.
+              </p>
+            </div>
+
+            <div className="hero-message hero-message-three" aria-hidden="true">
+              <p className="signal-label">03 · Elevation</p>
+              <p className="hero-display">
+                Understand the system. Elevate the whole.
+              </p>
+              <p className="hero-message-copy">
+                Optimization begins by seeing how body, mind, psychology, and
+                health move together.
+              </p>
+            </div>
+          </div>
+
+          <a className="hero-skip" href="#thesis">
+            Skip interactive introduction <span aria-hidden="true">↓</span>
+          </a>
+
+          <div className="hero-scroll-progress" aria-hidden="true">
+            <span>01</span>
+            <i />
+            <span>03</span>
+          </div>
+
+          <div className="hero-figure-label" aria-hidden="true">
+            <span>FIG. 001</span>
+            <span>HUMAN SYSTEM</span>
+          </div>
         </div>
       </section>
 
-      <section className="thesis" aria-labelledby="thesis-title">
+      <section className="thesis" id="thesis" aria-labelledby="thesis-title">
         <div className="thesis-word" aria-hidden="true">
           HUMAN
         </div>
@@ -434,7 +704,11 @@ export default function Home() {
 
         <div className="story-grid shell">
           {articles.map((article, index) => (
-            <a className={article.className} href="#newsletter" key={article.title}>
+            <a
+              className={article.className}
+              href={`/articles/${article.slug}`}
+              key={article.title}
+            >
               <div className="story-image">
                 <Image
                   src={article.image}
