@@ -15,58 +15,58 @@ const systems = [
   {
     number: "01",
     name: "Body",
-    descriptor: "Structure · Movement · Metabolism",
-    thesis: "The physical structure that carries every experience.",
-    copy: "Trace how tissue, movement, circulation, and energy production work together to keep you capable and adaptive.",
-    fields: ["Musculoskeletal", "Cardiovascular", "Metabolic"],
-    points: [
-      { label: "Cardiac muscle", side: "right", x: 54.2, y: 27.4, labelY: 26 },
-      { label: "Liver", side: "left", x: 43, y: 34.5, labelY: 35 },
-      { label: "Quadriceps", side: "right", x: 61.2, y: 62.6, labelY: 63 },
+    mode: "Physical capacity",
+    descriptor: "Capacity · Recovery · Energy",
+    thesis: "Build a body that can produce, recover, and adapt.",
+    copy: "Physical optimization is not appearance alone. It is the capacity to move well, create energy, tolerate demand, and recover for what comes next.",
+    supports: [
+      "Progressive movement",
+      "Restorative sleep",
+      "Nutrient sufficiency",
     ],
-    focus: [52, 29],
+    disrupts: [
+      "Chronic under-recovery",
+      "Prolonged inactivity",
+      "Unmanaged overload",
+    ],
+    signals: ["Strength & mobility", "Energy & recovery", "Metabolic health"],
   },
   {
     number: "02",
     name: "Mind",
-    descriptor: "Cognition · Sleep · Attention",
-    thesis: "Attention, memory, and perception emerge from a body in context.",
-    copy: "Explore the nervous and circadian systems behind focus, learning, memory, sleep, and the way reality reaches consciousness.",
-    fields: ["Central nervous", "Sensory", "Circadian"],
-    points: [
-      { label: "Cerebral cortex", side: "right", x: 50, y: 7.8, labelY: 6.3 },
-      { label: "Brainstem", side: "left", x: 50, y: 14.5, labelY: 13.2 },
-      { label: "Spinal cord", side: "right", x: 50, y: 19.2, labelY: 20.4 },
-    ],
-    focus: [50, 10],
+    mode: "Cognitive clarity",
+    descriptor: "Attention · Learning · Clarity",
+    thesis: "Train attention and protect the conditions for clear thought.",
+    copy: "Mental optimization means directing attention, learning efficiently, preserving cognitive energy, and making better decisions under real-world pressure.",
+    supports: ["Deep focus", "Quality sleep", "Deliberate learning"],
+    disrupts: ["Constant switching", "Sleep debt", "Passive overload"],
+    signals: ["Attention stability", "Learning & recall", "Cognitive energy"],
   },
   {
     number: "03",
     name: "Psychology",
+    mode: "Adaptive behavior",
     descriptor: "Emotion · Behavior · Identity",
-    thesis: "Behavior is shaped by learned patterns, emotion, and connection.",
-    copy: "See how stress, safety, relationships, and repeated experience influence what you feel, expect, and choose.",
-    fields: ["Stress response", "Emotional regulation", "Social cognition"],
-    points: [
-      { label: "Prefrontal cortex", side: "left", x: 50, y: 6.4, labelY: 5.3 },
-      { label: "Autonomic pathways", side: "right", x: 50, y: 16.4, labelY: 16.2 },
-      { label: "Enteric nervous system", side: "left", x: 50, y: 41.2, labelY: 41.8 },
-    ],
-    focus: [50, 18],
+    thesis: "Turn awareness into emotional range and adaptive behavior.",
+    copy: "Psychological optimization is the ability to understand internal patterns, regulate emotion, relate securely, and respond rather than react.",
+    supports: ["Self-awareness", "Emotional regulation", "Secure connection"],
+    disrupts: ["Chronic threat", "Rigid self-narratives", "Social isolation"],
+    signals: ["Stress recovery", "Behavioral patterns", "Relational health"],
   },
   {
     number: "04",
     name: "Health",
-    descriptor: "Prevention · Recovery · Longevity",
-    thesis: "Resilience depends on systems working together.",
-    copy: "Build practical literacy around prevention, immune function, hormonal signaling, recovery, and health across a lifetime.",
-    fields: ["Immune", "Endocrine", "Recovery"],
-    points: [
-      { label: "Thyroid gland", side: "left", x: 50, y: 17.2, labelY: 16.2 },
-      { label: "Thymus", side: "right", x: 50, y: 22.8, labelY: 23.2 },
-      { label: "Intestinal barrier", side: "left", x: 50, y: 42, labelY: 42.8 },
+    mode: "Long-term resilience",
+    descriptor: "Prevention · Resilience · Longevity",
+    thesis: "Protect long-term function through informed prevention.",
+    copy: "Health optimization connects daily behavior with preventive care, evidence, personal risk, and the ability to remain capable across a lifetime.",
+    supports: ["Preventive care", "Consistent recovery", "Risk-informed habits"],
+    disrupts: [
+      "Ignored warning signs",
+      "Fragmented information",
+      "Extreme interventions",
     ],
-    focus: [50, 24],
+    signals: ["Clinical markers", "Risk trends", "Function over time"],
   },
 ];
 
@@ -131,58 +131,33 @@ export default function Home() {
     if (reduceMotion) return;
 
     const scope = gsap.context(() => {
-      const figure = stage.querySelector(".atlas-figure img");
-      const aura = stage.querySelector(".atlas-aura");
-      const calloutGroups = stage.querySelectorAll(".atlas-callout-group");
-      const calloutLines = stage.querySelectorAll(".atlas-callout-line");
+      const core = stage.querySelector(".optimization-core");
+      const coreParts = stage.querySelectorAll(
+        ".optimization-ring, .optimization-center, .optimization-node",
+      );
       const panelCopy = stage.querySelectorAll(
-        ".atlas-panel-meta, .atlas-panel-copy, .atlas-fields a",
+        ".atlas-panel-meta, .atlas-panel-copy, .optimization-lens",
       );
-      if (!figure) return;
+      if (!core) return;
 
-      gsap.killTweensOf([
-        figure,
-        aura,
-        calloutGroups,
-        calloutLines,
-        panelCopy,
-      ]);
+      gsap.killTweensOf([core, coreParts, panelCopy]);
       gsap.fromTo(
-        figure,
+        core,
+        { scale: 0.965, rotate: -1.4 },
         {
-          scale: 0.992,
-          y: 6,
-        },
-        {
-          scale: 1.008,
-          y: 0,
-          duration: 0.64,
-          ease: "power2.out",
-          transformOrigin: `${currentSystem.focus[0]}% ${currentSystem.focus[1]}%`,
+          scale: 1,
+          rotate: 0,
+          duration: 0.72,
+          ease: "power3.out",
         },
       );
       gsap.fromTo(
-        aura,
-        { opacity: 0, scale: 0.68 },
-        { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" },
-      );
-      gsap.fromTo(
-        calloutLines,
-        { strokeDashoffset: 1 },
+        coreParts,
+        { opacity: 0.35 },
         {
-          strokeDashoffset: 0,
-          duration: 0.56,
-          stagger: 0.08,
-          ease: "power2.inOut",
-        },
-      );
-      gsap.fromTo(
-        calloutGroups,
-        { autoAlpha: 0 },
-        {
-          autoAlpha: 1,
-          duration: 0.34,
-          stagger: 0.08,
+          opacity: 1,
+          duration: 0.48,
+          stagger: 0.035,
           ease: "power1.out",
         },
       );
@@ -200,7 +175,7 @@ export default function Home() {
     }, stage);
 
     return () => scope.revert();
-  }, [activeSystem, currentSystem.focus]);
+  }, [activeSystem]);
 
   function handleAtlasKeys(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const last = systems.length - 1;
@@ -383,11 +358,11 @@ export default function Home() {
 
       <section className="atlas" id="atlas" aria-labelledby="atlas-title">
         <div className="atlas-heading shell">
-          <p className="section-kicker">Interactive Human Atlas</p>
-          <h2 id="atlas-title">The systems beneath the self.</h2>
+          <p className="section-kicker">Human Optimization System</p>
+          <h2 id="atlas-title">Optimize the whole human.</h2>
           <p>
-            Select a field. See the structures, signals, and processes behind
-            how you function.
+            Explore the four dimensions that shape human performance. Improve
+            one with awareness of how it affects the whole.
           </p>
         </div>
 
@@ -414,7 +389,8 @@ export default function Home() {
                 onKeyDown={(event) => handleAtlasKeys(event, index)}
               >
                 <span>{system.number}</span>
-                {system.name}
+                <strong>{system.name}</strong>
+                <small>{system.mode}</small>
               </button>
             ))}
             <div className="atlas-progress" aria-hidden="true">
@@ -425,63 +401,43 @@ export default function Home() {
           </div>
 
           <div
-            className="atlas-figure"
+            className={`optimization-core optimization-system-${activeSystem + 1}`}
             style={
               {
-                "--focus-x": `${currentSystem.focus[0]}%`,
-                "--focus-y": `${currentSystem.focus[1]}%`,
+                "--system-rotation": `${activeSystem * 90}deg`,
               } as CSSProperties
             }
+            aria-hidden="true"
           >
-            <div className="atlas-aura" aria-hidden="true" />
-            <Image
-              src="/human-atlas.jpg"
-              alt="Front-facing anatomical figure showing the interconnected systems of the human body"
-              width={864}
-              height={1821}
-              sizes="(max-width: 760px) 78vw, 470px"
-              priority={false}
-            />
-            <svg
-              className="atlas-callouts"
-              viewBox="0 0 864 1821"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              {currentSystem.points.map((point) => {
-                const anchorX = point.x * 8.64;
-                const anchorY = point.y * 18.21;
-                const labelY = point.labelY * 18.21;
-                const isLeft = point.side === "left";
-                const kneeX = isLeft ? anchorX - 44 : anchorX + 44;
-                const railX = isLeft ? -138 : 1002;
-                const labelX = isLeft ? -165 : 974;
-
-                return (
-                  <g className="atlas-callout-group" key={point.label}>
-                    <polyline
-                      className="atlas-callout-line"
-                      pathLength="1"
-                      points={`${anchorX},${anchorY} ${kneeX},${anchorY} ${railX},${labelY}`}
-                    />
-                    <circle
-                      className="atlas-callout-anchor"
-                      cx={anchorX}
-                      cy={anchorY}
-                      r="6"
-                    />
-                    <text
-                      className="atlas-callout-label"
-                      x={labelX}
-                      y={labelY + 6}
-                      textAnchor="end"
-                    >
-                      {point.label}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
+            <div className="optimization-grid" />
+            <div className="optimization-scan" />
+            <div className="optimization-ring optimization-ring-outer">
+              <i />
+              <i />
+              <i />
+              <i />
+            </div>
+            <div className="optimization-ring optimization-ring-middle" />
+            <div className="optimization-ring optimization-ring-inner" />
+            <div className="optimization-cross optimization-cross-x" />
+            <div className="optimization-cross optimization-cross-y" />
+            <div className="optimization-center">
+              <span>Active dimension</span>
+              <strong>{currentSystem.name}</strong>
+              <small>{currentSystem.mode}</small>
+            </div>
+            {systems.map((system, index) => (
+              <div
+                className={`optimization-node optimization-node-${index + 1}${
+                  activeSystem === index ? " is-active" : ""
+                }`}
+                key={system.name}
+              >
+                <span>{system.number}</span>
+                <strong>{system.name}</strong>
+              </div>
+            ))}
+            <p className="optimization-core-label">One adaptive human system</p>
           </div>
 
           <div
@@ -498,15 +454,42 @@ export default function Home() {
               <h3>{currentSystem.thesis}</h3>
               <p>{currentSystem.copy}</p>
             </div>
-            <div className="atlas-fields">
-              {currentSystem.fields.map((field, index) => (
-                <a href="#research" key={field}>
-                  <span>0{index + 1}</span>
-                  {field}
-                  <i aria-hidden="true">↗</i>
-                </a>
-              ))}
+            <div className="optimization-lenses">
+              <div className="optimization-lens">
+                <h4>
+                  <span>01</span>
+                  Strengthen
+                </h4>
+                <p>{currentSystem.supports.join(" · ")}</p>
+              </div>
+              <div className="optimization-lens">
+                <h4>
+                  <span>02</span>
+                  Protect from
+                </h4>
+                <p>{currentSystem.disrupts.join(" · ")}</p>
+              </div>
+              <div className="optimization-lens">
+                <h4>
+                  <span>03</span>
+                  Observe
+                </h4>
+                <p>{currentSystem.signals.join(" · ")}</p>
+              </div>
             </div>
+          </div>
+
+          <div className="optimization-loop" aria-label="The optimization loop">
+            <p>The optimization loop</p>
+            {["Understand", "Strengthen", "Protect", "Observe", "Adapt"].map(
+              (step, index) => (
+                <div key={step}>
+                  <span>0{index + 1}</span>
+                  <strong>{step}</strong>
+                  {index < 4 && <i aria-hidden="true">→</i>}
+                </div>
+              ),
+            )}
           </div>
         </div>
       </section>
