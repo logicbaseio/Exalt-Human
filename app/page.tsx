@@ -3,7 +3,6 @@
 import { gsap } from "gsap";
 import Image from "next/image";
 import {
-  CSSProperties,
   KeyboardEvent,
   useEffect,
   useRef,
@@ -16,6 +15,7 @@ const systems = [
     number: "01",
     name: "Body",
     mode: "Physical capacity",
+    visualCue: "Move · Fuel · Recover",
     descriptor: "Capacity · Recovery · Energy",
     thesis: "Build a body that can produce, recover, and adapt.",
     copy: "Physical optimization is not appearance alone. It is the capacity to move well, create energy, tolerate demand, and recover for what comes next.",
@@ -35,6 +35,7 @@ const systems = [
     number: "02",
     name: "Mind",
     mode: "Cognitive clarity",
+    visualCue: "Focus · Learn · Decide",
     descriptor: "Attention · Learning · Clarity",
     thesis: "Train attention and protect the conditions for clear thought.",
     copy: "Mental optimization means directing attention, learning efficiently, preserving cognitive energy, and making better decisions under real-world pressure.",
@@ -46,6 +47,7 @@ const systems = [
     number: "03",
     name: "Psychology",
     mode: "Adaptive behavior",
+    visualCue: "Feel · Relate · Adapt",
     descriptor: "Emotion · Behavior · Identity",
     thesis: "Turn awareness into emotional range and adaptive behavior.",
     copy: "Psychological optimization is the ability to understand internal patterns, regulate emotion, relate securely, and respond rather than react.",
@@ -57,6 +59,7 @@ const systems = [
     number: "04",
     name: "Health",
     mode: "Long-term resilience",
+    visualCue: "Prevent · Restore · Endure",
     descriptor: "Prevention · Resilience · Longevity",
     thesis: "Protect long-term function through informed prevention.",
     copy: "Health optimization connects daily behavior with preventive care, evidence, personal risk, and the ability to remain capable across a lifetime.",
@@ -131,34 +134,22 @@ export default function Home() {
     if (reduceMotion) return;
 
     const scope = gsap.context(() => {
-      const core = stage.querySelector(".optimization-core");
-      const coreParts = stage.querySelectorAll(
-        ".optimization-ring, .optimization-center, .optimization-node",
+      const activeWorld = stage.querySelector(
+        '.optimization-world[aria-selected="true"]',
       );
       const panelCopy = stage.querySelectorAll(
         ".atlas-panel-meta, .atlas-panel-copy, .optimization-lens",
       );
-      if (!core) return;
+      if (!activeWorld) return;
 
-      gsap.killTweensOf([core, coreParts, panelCopy]);
+      gsap.killTweensOf([activeWorld, panelCopy]);
       gsap.fromTo(
-        core,
-        { scale: 0.965, rotate: -1.4 },
+        activeWorld,
+        { scale: 0.985 },
         {
           scale: 1,
-          rotate: 0,
-          duration: 0.72,
+          duration: 0.62,
           ease: "power3.out",
-        },
-      );
-      gsap.fromTo(
-        coreParts,
-        { opacity: 0.35 },
-        {
-          opacity: 1,
-          duration: 0.48,
-          stagger: 0.035,
-          ease: "power1.out",
         },
       );
       gsap.fromTo(
@@ -368,10 +359,10 @@ export default function Home() {
 
         <div className="atlas-stage shell" ref={atlasStageRef}>
           <div
-            className="atlas-tabs"
+            className="optimization-worlds"
             role="tablist"
-            aria-label="Human system fields"
-            aria-orientation="vertical"
+            aria-label="Four dimensions of human optimization"
+            aria-orientation="horizontal"
           >
             {systems.map((system, index) => (
               <button
@@ -387,72 +378,45 @@ export default function Home() {
                 }}
                 onClick={() => setActiveSystem(index)}
                 onKeyDown={(event) => handleAtlasKeys(event, index)}
+                className={`optimization-world optimization-world-${index + 1}`}
               >
-                <span>{system.number}</span>
-                <strong>{system.name}</strong>
-                <small>{system.mode}</small>
+                <span
+                  className={`optimization-world-art optimization-world-art-${index + 1}`}
+                  aria-hidden="true"
+                />
+                <span className="optimization-world-shade" aria-hidden="true" />
+                <span className="optimization-world-top">
+                  <i>{system.number}</i>
+                  <small>{system.mode}</small>
+                </span>
+                <span className="optimization-world-copy">
+                  <strong>{system.name}</strong>
+                  <small>{system.visualCue}</small>
+                  <em>
+                    {activeSystem === index
+                      ? system.thesis
+                      : "Select to explore"}
+                  </em>
+                </span>
               </button>
             ))}
-            <div className="atlas-progress" aria-hidden="true">
-              <span>{currentSystem.number}</span>
-              <i />
-              <span>04</span>
-            </div>
           </div>
 
           <div
-            className={`optimization-core optimization-system-${activeSystem + 1}`}
-            style={
-              {
-                "--system-rotation": `${activeSystem * 90}deg`,
-              } as CSSProperties
-            }
-            aria-hidden="true"
-          >
-            <div className="optimization-grid" />
-            <div className="optimization-scan" />
-            <div className="optimization-ring optimization-ring-outer">
-              <i />
-              <i />
-              <i />
-              <i />
-            </div>
-            <div className="optimization-ring optimization-ring-middle" />
-            <div className="optimization-ring optimization-ring-inner" />
-            <div className="optimization-cross optimization-cross-x" />
-            <div className="optimization-cross optimization-cross-y" />
-            <div className="optimization-center">
-              <span>Active dimension</span>
-              <strong>{currentSystem.name}</strong>
-              <small>{currentSystem.mode}</small>
-            </div>
-            {systems.map((system, index) => (
-              <div
-                className={`optimization-node optimization-node-${index + 1}${
-                  activeSystem === index ? " is-active" : ""
-                }`}
-                key={system.name}
-              >
-                <span>{system.number}</span>
-                <strong>{system.name}</strong>
-              </div>
-            ))}
-            <p className="optimization-core-label">One adaptive human system</p>
-          </div>
-
-          <div
-            className="atlas-panel"
+            className="atlas-panel optimization-brief"
             id="atlas-panel"
             role="tabpanel"
             aria-labelledby={`atlas-tab-${activeSystem}`}
           >
-            <div className="atlas-panel-meta">
-              <span>{currentSystem.number} / 04</span>
-              <span>{currentSystem.descriptor}</span>
-            </div>
-            <div className="atlas-panel-copy" aria-live="polite">
-              <h3>{currentSystem.thesis}</h3>
-              <p>{currentSystem.copy}</p>
+            <div className="optimization-brief-intro">
+              <div className="atlas-panel-meta">
+                <span>{currentSystem.number} / 04</span>
+                <span>{currentSystem.descriptor}</span>
+              </div>
+              <div className="atlas-panel-copy" aria-live="polite">
+                <h3>{currentSystem.thesis}</h3>
+                <p>{currentSystem.copy}</p>
+              </div>
             </div>
             <div className="optimization-lenses">
               <div className="optimization-lens">
