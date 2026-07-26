@@ -137,32 +137,42 @@ export default function Home() {
       const activeWorld = stage.querySelector(
         '.optimization-world[aria-selected="true"]',
       );
+      const activeMotion = activeWorld?.querySelector(
+        ".optimization-world-motion",
+      );
       const panelCopy = stage.querySelectorAll(
         ".atlas-panel-meta, .atlas-panel-copy, .optimization-lens",
       );
       if (!activeWorld) return;
 
-      gsap.killTweensOf([activeWorld, panelCopy]);
-      gsap.fromTo(
-        activeWorld,
-        { scale: 0.985 },
-        {
-          scale: 1,
-          duration: 0.62,
-          ease: "power3.out",
-        },
-      );
-      gsap.fromTo(
-        panelCopy,
-        { opacity: 0, y: 18 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.55,
-          stagger: 0.045,
-          ease: "power3.out",
-        },
-      );
+      gsap.killTweensOf([activeWorld, activeMotion, panelCopy]);
+      const timeline = gsap.timeline({
+        defaults: { ease: "power3.out" },
+      });
+      timeline
+        .fromTo(
+          activeWorld,
+          { scale: 0.985 },
+          { scale: 1, duration: 0.62 },
+          0,
+        )
+        .fromTo(
+          activeMotion,
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.48 },
+          0.12,
+        )
+        .fromTo(
+          panelCopy,
+          { opacity: 0, y: 18 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.55,
+            stagger: 0.045,
+          },
+          0.1,
+        );
     }, stage);
 
     return () => scope.revert();
@@ -385,6 +395,14 @@ export default function Home() {
                   aria-hidden="true"
                 />
                 <span className="optimization-world-shade" aria-hidden="true" />
+                <span
+                  className="optimization-world-motion"
+                  aria-hidden="true"
+                >
+                  <i />
+                  <i />
+                  <i />
+                </span>
                 <span className="optimization-world-top">
                   <i>{system.number}</i>
                   <small>{system.mode}</small>
