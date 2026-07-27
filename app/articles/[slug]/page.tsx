@@ -79,7 +79,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <Link className="wordmark" href="/" aria-label="Exalt Human home">
             <Image
               className="brand-logo"
-              src="/branding/logo-full-light-red.png"
+              src="/exalt-human-logo.png"
               alt=""
               width={196}
               height={51}
@@ -281,7 +281,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <Link className="wordmark" href="/">
             <Image
               className="brand-logo"
-              src="/branding/logo-full-light-red.png"
+              src="/exalt-human-logo.png"
               alt="Exalt Human"
               width={196}
               height={51}

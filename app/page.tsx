@@ -59,7 +59,7 @@ export default function Home() {
           <a className="wordmark" href="#top" aria-label="Exalt Human home">
             <Image
               className="brand-logo"
-              src="/branding/logo-full-light-red.png"
+              src="/exalt-human-logo.png"
               alt=""
               width={196}
               height={51}
@@ -327,7 +327,7 @@ export default function Home() {
             <a className="wordmark" href="#top" aria-label="Exalt Human home">
               <Image
                 className="brand-logo"
-                src="/branding/logo-full-light-red.png"
+                src="/exalt-human-logo.png"
                 alt=""
                 width={196}
                 height={51}
