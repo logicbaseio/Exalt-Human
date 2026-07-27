@@ -1,77 +1,6 @@
-"use client";
-
-import { gsap } from "gsap";
 import Image from "next/image";
-import {
-  KeyboardEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
 import OptimizationDispatch from "./components/OptimizationDispatch";
-
-const systems = [
-  {
-    number: "01",
-    name: "Body",
-    mode: "Physical capacity",
-    visualCue: "Move · Fuel · Recover",
-    descriptor: "Capacity · Recovery · Energy",
-    thesis: "Build a body that can produce, recover, and adapt.",
-    copy: "Physical optimization is not appearance alone. It is the capacity to move well, create energy, tolerate demand, and recover for what comes next.",
-    supports: [
-      "Progressive movement",
-      "Restorative sleep",
-      "Nutrient sufficiency",
-    ],
-    disrupts: [
-      "Chronic under-recovery",
-      "Prolonged inactivity",
-      "Unmanaged overload",
-    ],
-    signals: ["Strength & mobility", "Energy & recovery", "Metabolic health"],
-  },
-  {
-    number: "02",
-    name: "Mind",
-    mode: "Cognitive clarity",
-    visualCue: "Focus · Learn · Decide",
-    descriptor: "Attention · Learning · Clarity",
-    thesis: "Train attention and protect the conditions for clear thought.",
-    copy: "Mental optimization means directing attention, learning efficiently, preserving cognitive energy, and making better decisions under real-world pressure.",
-    supports: ["Deep focus", "Quality sleep", "Deliberate learning"],
-    disrupts: ["Constant switching", "Sleep debt", "Passive overload"],
-    signals: ["Attention stability", "Learning & recall", "Cognitive energy"],
-  },
-  {
-    number: "03",
-    name: "Psychology",
-    mode: "Adaptive behavior",
-    visualCue: "Feel · Relate · Adapt",
-    descriptor: "Emotion · Behavior · Identity",
-    thesis: "Turn awareness into emotional range and adaptive behavior.",
-    copy: "Psychological optimization is the ability to understand internal patterns, regulate emotion, relate securely, and respond rather than react.",
-    supports: ["Self-awareness", "Emotional regulation", "Secure connection"],
-    disrupts: ["Chronic threat", "Rigid self-narratives", "Social isolation"],
-    signals: ["Stress recovery", "Behavioral patterns", "Relational health"],
-  },
-  {
-    number: "04",
-    name: "Health",
-    mode: "Long-term resilience",
-    visualCue: "Prevent · Restore · Endure",
-    descriptor: "Prevention · Resilience · Longevity",
-    thesis: "Protect long-term function through informed prevention.",
-    copy: "Health optimization connects daily behavior with preventive care, evidence, personal risk, and the ability to remain capable across a lifetime.",
-    supports: ["Preventive care", "Consistent recovery", "Risk-informed habits"],
-    disrupts: [
-      "Ignored warning signs",
-      "Fragmented information",
-      "Extreme interventions",
-    ],
-    signals: ["Clinical markers", "Risk trends", "Function over time"],
-  },
-];
+import WholeHumanSystem from "./components/WholeHumanSystem";
 
 const articles = [
   {
@@ -119,86 +48,6 @@ const articles = [
 ];
 
 export default function Home() {
-  const [activeSystem, setActiveSystem] = useState(0);
-  const atlasStageRef = useRef<HTMLDivElement>(null);
-  const atlasTabs = useRef<Array<HTMLButtonElement | null>>([]);
-  const currentSystem = systems[activeSystem];
-
-  useEffect(() => {
-    const stage = atlasStageRef.current;
-    if (!stage) return;
-
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (reduceMotion) return;
-
-    const scope = gsap.context(() => {
-      const activeWorld = stage.querySelector(
-        '.optimization-world[aria-selected="true"]',
-      );
-      const activeMotion = activeWorld?.querySelector(
-        ".optimization-world-motion",
-      );
-      const panelCopy = stage.querySelectorAll(
-        ".atlas-panel-meta, .atlas-panel-copy, .optimization-lens",
-      );
-      if (!activeWorld || !activeMotion) return;
-
-      gsap.killTweensOf([activeWorld, activeMotion, panelCopy]);
-      const timeline = gsap.timeline({
-        defaults: { ease: "power3.out" },
-      });
-      timeline
-        .fromTo(
-          activeWorld,
-          { scale: 0.985 },
-          { scale: 1, duration: 0.62 },
-          0,
-        )
-        .fromTo(
-          activeMotion,
-          { autoAlpha: 0 },
-          { autoAlpha: 1, duration: 0.48 },
-          0.12,
-        )
-        .fromTo(
-          panelCopy,
-          { opacity: 0, y: 18 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.55,
-            stagger: 0.045,
-          },
-          0.1,
-        );
-    }, stage);
-
-    return () => scope.revert();
-  }, [activeSystem]);
-
-  function handleAtlasKeys(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    const last = systems.length - 1;
-    let next = index;
-
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-      next = index === last ? 0 : index + 1;
-    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-      next = index === 0 ? last : index - 1;
-    } else if (event.key === "Home") {
-      next = 0;
-    } else if (event.key === "End") {
-      next = last;
-    } else {
-      return;
-    }
-
-    event.preventDefault();
-    setActiveSystem(next);
-    atlasTabs.current[next]?.focus();
-  }
-
   return (
     <main>
       <section
@@ -220,7 +69,7 @@ export default function Home() {
           </a>
 
           <nav className="desktop-nav" aria-label="Primary navigation">
-            <a href="#atlas">Human Atlas</a>
+            <a href="#atlas">Whole Human</a>
             <a href="#research">Research</a>
             <a href="#standard">Our standard</a>
           </nav>
@@ -235,7 +84,7 @@ export default function Home() {
               <span />
             </summary>
             <nav aria-label="Mobile navigation">
-              <a href="#atlas">Human Atlas</a>
+              <a href="#atlas">Whole Human</a>
               <a href="#research">Research journal</a>
               <a href="#standard">Research standard</a>
               <a href="#newsletter">The Dispatch</a>
@@ -294,7 +143,7 @@ export default function Home() {
             </p>
             <div className="hero-actions">
               <a className="hero-action-primary" href="#atlas">
-                Explore the Human Atlas <span aria-hidden="true">↘</span>
+                See the whole system <span aria-hidden="true">↘</span>
               </a>
               <a className="hero-action-secondary" href="#research">
                 Read the research <span aria-hidden="true">↗</span>
@@ -357,124 +206,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="atlas" id="atlas" aria-labelledby="atlas-title">
-        <div className="atlas-heading shell">
-          <p className="section-kicker">Human Optimization System</p>
-          <h2 id="atlas-title">Optimize the whole human.</h2>
-          <p>
-            Explore the four dimensions that shape human performance. Improve
-            one with awareness of how it affects the whole.
-          </p>
-        </div>
-
-        <div className="atlas-stage shell" ref={atlasStageRef}>
-          <div
-            className="optimization-worlds"
-            role="tablist"
-            aria-label="Four dimensions of human optimization"
-            aria-orientation="horizontal"
-          >
-            {systems.map((system, index) => (
-              <button
-                key={system.name}
-                type="button"
-                role="tab"
-                id={`atlas-tab-${index}`}
-                aria-controls="atlas-panel"
-                aria-selected={activeSystem === index}
-                tabIndex={activeSystem === index ? 0 : -1}
-                ref={(element) => {
-                  atlasTabs.current[index] = element;
-                }}
-                onClick={() => setActiveSystem(index)}
-                onKeyDown={(event) => handleAtlasKeys(event, index)}
-                className={`optimization-world optimization-world-${index + 1}`}
-              >
-                <span
-                  className={`optimization-world-art optimization-world-art-${index + 1}`}
-                  aria-hidden="true"
-                />
-                <span className="optimization-world-shade" aria-hidden="true" />
-                <span
-                  className="optimization-world-motion"
-                  aria-hidden="true"
-                >
-                  <i />
-                  <i />
-                  <i />
-                </span>
-                <span className="optimization-world-top">
-                  <i>{system.number}</i>
-                  <small>{system.mode}</small>
-                </span>
-                <span className="optimization-world-copy">
-                  <strong>{system.name}</strong>
-                  <small>{system.visualCue}</small>
-                  <em>
-                    {activeSystem === index
-                      ? system.thesis
-                      : "Select to explore"}
-                  </em>
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div
-            className="atlas-panel optimization-brief"
-            id="atlas-panel"
-            role="tabpanel"
-            aria-labelledby={`atlas-tab-${activeSystem}`}
-          >
-            <div className="optimization-brief-intro">
-              <div className="atlas-panel-meta">
-                <span>{currentSystem.number} / 04</span>
-                <span>{currentSystem.descriptor}</span>
-              </div>
-              <div className="atlas-panel-copy" aria-live="polite">
-                <h3>{currentSystem.thesis}</h3>
-                <p>{currentSystem.copy}</p>
-              </div>
-            </div>
-            <div className="optimization-lenses">
-              <div className="optimization-lens">
-                <h4>
-                  <span>01</span>
-                  Strengthen
-                </h4>
-                <p>{currentSystem.supports.join(" · ")}</p>
-              </div>
-              <div className="optimization-lens">
-                <h4>
-                  <span>02</span>
-                  Protect from
-                </h4>
-                <p>{currentSystem.disrupts.join(" · ")}</p>
-              </div>
-              <div className="optimization-lens">
-                <h4>
-                  <span>03</span>
-                  Observe
-                </h4>
-                <p>{currentSystem.signals.join(" · ")}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="optimization-loop" aria-label="The optimization loop">
-            <p>The optimization loop</p>
-            {["Understand", "Strengthen", "Protect", "Observe", "Adapt"].map(
-              (step, index) => (
-                <div key={step}>
-                  <span>0{index + 1}</span>
-                  <strong>{step}</strong>
-                  {index < 4 && <i aria-hidden="true">→</i>}
-                </div>
-              ),
-            )}
-          </div>
-        </div>
-      </section>
+      <WholeHumanSystem />
 
       <section
         className="research-journal"
@@ -606,7 +338,7 @@ export default function Home() {
           </div>
           <div className="footer-bottom">
             <nav aria-label="Footer navigation">
-              <a href="#atlas">Human Atlas</a>
+              <a href="#atlas">Whole Human</a>
               <a href="#research">Research</a>
               <a href="#standard">Editorial standard</a>
               <a href="#newsletter">The Dispatch</a>

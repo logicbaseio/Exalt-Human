@@ -88,7 +88,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             />
           </Link>
           <nav aria-label="Article navigation">
-            <Link href="/#atlas">Human Atlas</Link>
+            <Link href="/#atlas">Whole Human</Link>
             <Link href="/#research">Research</Link>
             <Link href="/#standard">Our standard</Link>
           </nav>
