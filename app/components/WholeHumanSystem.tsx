@@ -270,7 +270,13 @@ export default function WholeHumanSystem() {
           <div className={styles.inputReadout} key={`input-${input.name}`}>
             <span className={styles.readoutLabel}>Active input</span>
             <p className={styles.readoutNumber}>{input.number} / 04</p>
-            <h3>{input.name}</h3>
+            <h3
+              className={
+                input.name.length > 7 ? styles.longReadoutTitle : undefined
+              }
+            >
+              {input.name}
+            </h3>
             <p className={styles.prompt}>{input.prompt}</p>
             <div className={styles.liveSignal}>
               <i aria-hidden="true" />

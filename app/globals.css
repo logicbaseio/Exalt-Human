@@ -121,8 +121,11 @@ a {
 
 .brand-logo {
   display: block;
-  width: 144px;
+  width: clamp(146px, 10vw, 176px);
   height: auto;
+  object-fit: contain;
+  object-position: left center;
+  filter: drop-shadow(0 0 18px rgba(241, 52, 15, 0.1));
 }
 
 .desktop-nav {
