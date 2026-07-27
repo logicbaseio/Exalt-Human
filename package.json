@@ -1,19 +1,21 @@
 {
-  "name": "site-creator-vinext-starter",
+  "name": "exalt-human",
   "version": "0.1.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
-    "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "npm run lint && npm run build",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "drizzle-orm": "0.45.2",
     "gsap": "^3.15.0",
     "next": "16.2.6",

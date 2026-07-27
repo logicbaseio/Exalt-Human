@@ -70,6 +70,8 @@ const weeklyLoop = [
 export default function OptimizationDispatch() {
   const sectionRef = useRef<HTMLElement>(null);
   const [subscribed, setSubscribed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -178,9 +180,43 @@ export default function OptimizationDispatch() {
     };
   }, []);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubscribed(true);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const email = String(formData.get("email") ?? "").trim();
+    const website = String(formData.get("website") ?? "");
+
+    setSubmitting(true);
+    setFormError("");
+
+    try {
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, website }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Unable to join the Dispatch.");
+      }
+
+      setSubscribed(true);
+      form.reset();
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to join right now. Please try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -293,13 +329,25 @@ export default function OptimizationDispatch() {
                 placeholder="Your email address"
                 required
               />
-              <button type="submit">
-                Join the Dispatch
+              <input
+                className={styles.honeypot}
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+              />
+              <button type="submit" disabled={submitting}>
+                {submitting ? "Joining…" : "Join the Dispatch"}
                 <span aria-hidden="true">↗</span>
               </button>
-              <p>
-                Independent human science. One useful briefing a week. No
-                noise.
+              <p
+                className={formError ? styles.formError : undefined}
+                role={formError ? "alert" : undefined}
+                aria-live="polite"
+              >
+                {formError ||
+                  "Independent human science. One useful briefing a week. No noise."}
               </p>
             </form>
           )}

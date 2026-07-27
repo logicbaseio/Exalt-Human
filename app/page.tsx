@@ -143,7 +143,7 @@ export default function Home() {
       const panelCopy = stage.querySelectorAll(
         ".atlas-panel-meta, .atlas-panel-copy, .optimization-lens",
       );
-      if (!activeWorld) return;
+      if (!activeWorld || !activeMotion) return;
 
       gsap.killTweensOf([activeWorld, activeMotion, panelCopy]);
       const timeline = gsap.timeline({

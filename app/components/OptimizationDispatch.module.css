@@ -374,6 +374,11 @@
   color: var(--ink);
 }
 
+.form button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .form button:focus-visible {
   outline: 2px solid var(--white);
   outline-offset: 3px;
@@ -387,6 +392,17 @@
   line-height: 1.5;
   margin: 16px 0 0;
   text-transform: uppercase;
+}
+
+.form .formError {
+  font-weight: 700;
+}
+
+.honeypot {
+  left: -10000px;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
 }
 
 .confirmation {

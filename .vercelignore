@@ -1,0 +1,13 @@
+.git
+.openai
+.gstack
+.wrangler
+.vinext
+.next
+dist
+node_modules
+Branding
+exalt-human
+examples
+outputs
+work
