@@ -45,6 +45,48 @@ const articles = [
     height: 1024,
     alt: "A detailed visualization of mitochondria within a human cell",
   },
+  {
+    className: "story",
+    slug: "ultra-processed-food-overrides-fullness",
+    category: "Human Hijack",
+    title: "Ultra-processed food is built to outrun your fullness.",
+    summary:
+      "In a controlled trial, people ate about 500 more calories a day on an ultra-processed diet matched for sugar, fat, salt, and fiber.",
+    time: "8 min read",
+    updated: "Jul 2026",
+    image: "/human-system-hero-front.png",
+    width: 1672,
+    height: 941,
+    alt: "A front-facing anatomical rendering of the human body",
+  },
+  {
+    className: "story",
+    slug: "vo2-max-trainable-longevity-metric",
+    category: "Human Upgrade",
+    title: "VO₂ max may be the most trainable number in longevity.",
+    summary:
+      "In 122,000 adults, higher cardiorespiratory fitness tracked with far lower mortality — and unlike your genes, it is trainable.",
+    time: "9 min read",
+    updated: "Jul 2026",
+    image: "/human-atlas.jpg",
+    width: 864,
+    height: 1821,
+    alt: "A full-body anatomical atlas of the human system",
+  },
+  {
+    className: "story",
+    slug: "ai-learned-to-read-proteins",
+    category: "Human Future",
+    title: "AI learned to read the shape of proteins.",
+    summary:
+      "AlphaFold predicted the structure of nearly every known protein — and what it still cannot do matters just as much.",
+    time: "10 min read",
+    updated: "Jul 2026",
+    image: "/optimization-worlds.png",
+    width: 1254,
+    height: 1254,
+    alt: "An abstract network visualization representing computational biology",
+  },
 ];
 
 export default function Home() {
