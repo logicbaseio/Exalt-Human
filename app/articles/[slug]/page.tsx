@@ -2,11 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getResearchArticle,
-  researchArticles,
-  type ArticleParagraph,
-} from "../article-data";
+import { researchArticles, type ArticleParagraph } from "../article-data";
+import { getLiveArticle, listLiveArticles } from "@/lib/content";
 
 type ArticlePageProps = {
   params: Promise<{ slug: string }>;
@@ -20,7 +17,7 @@ export async function generateMetadata({
   params,
 }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = getResearchArticle(slug);
+  const article = await getLiveArticle(slug);
 
   if (!article) {
     return { title: "Article not found" };
@@ -61,16 +58,15 @@ function CitationLinks({
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const article = getResearchArticle(slug);
+  const article = await getLiveArticle(slug);
 
   if (!article) notFound();
 
-  const articleIndex = researchArticles.findIndex((item) => item.slug === slug);
+  const all = await listLiveArticles();
+  const articleIndex = all.findIndex((item) => item.slug === slug);
   const previous =
-    researchArticles[
-      (articleIndex - 1 + researchArticles.length) % researchArticles.length
-    ];
-  const next = researchArticles[(articleIndex + 1) % researchArticles.length];
+    articleIndex >= 0 ? all[(articleIndex - 1 + all.length) % all.length] : article;
+  const next = articleIndex >= 0 ? all[(articleIndex + 1) % all.length] : article;
 
   return (
     <main className="article-page">

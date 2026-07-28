@@ -1,8 +1,27 @@
 import Image from "next/image";
 import OptimizationDispatch from "./components/OptimizationDispatch";
 import WholeHumanSystem from "./components/WholeHumanSystem";
+import { listLiveArticles } from "@/lib/content";
+import type { ResearchArticle } from "./articles/article-data";
 
-const articles = [
+function toCard(a: ResearchArticle, i: number) {
+  const category = a.system.split("·").slice(-1)[0]?.trim() || a.system;
+  return {
+    className: i === 0 ? "story story-lead" : "story",
+    slug: a.slug,
+    category,
+    title: a.title,
+    summary: a.deck,
+    time: a.time,
+    updated: a.published || a.reviewed || "",
+    image: a.image,
+    width: a.width,
+    height: a.height,
+    alt: a.alt,
+  };
+}
+
+const FALLBACK_ARTICLES = [
   {
     className: "story story-lead",
     slug: "sleep-is-the-foundation",
@@ -89,7 +108,10 @@ const articles = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const live = await listLiveArticles();
+  const mapped = live.slice(0, 6).map(toCard);
+  const articles = mapped.length ? mapped : FALLBACK_ARTICLES;
   return (
     <main>
       <section
