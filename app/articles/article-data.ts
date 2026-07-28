@@ -894,12 +894,12 @@ export const researchArticles: ResearchArticle[] = [
     published: "July 2026",
     reviewed: "July 2026",
     byline: "Exalt Human Research Desk",
-    image: "/human-atlas.jpg",
-    width: 864,
-    height: 1821,
-    alt: "A full-body anatomical atlas of the human system",
+    image: "/article-grip-strength.jpg",
+    width: 1024,
+    height: 1536,
+    alt: "A translucent anatomical scan of a clenched hand and forearm, muscles and tendons glowing",
     caption:
-      "Grip strength is measured with a simple hand dynamometer, but it reflects strength and muscle across the whole body, not just the hand.",
+      "A firm grip is measured at the hand, but it draws on muscle, tendon, and nerve throughout the forearm and body. That is why the number reflects far more than the hand alone.",
     sections: [
       {
         id: "the-number",
