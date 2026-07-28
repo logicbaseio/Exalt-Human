@@ -895,8 +895,8 @@ export const researchArticles: ResearchArticle[] = [
     reviewed: "July 2026",
     byline: "Exalt Human Research Desk",
     image: "/article-grip-strength.jpg",
-    width: 1024,
-    height: 1536,
+    width: 1774,
+    height: 886,
     alt: "A translucent anatomical scan of a clenched hand and forearm, muscles and tendons glowing",
     caption:
       "A firm grip is measured at the hand, but it draws on muscle, tendon, and nerve throughout the forearm and body. That is why the number reflects far more than the hand alone.",
