@@ -884,6 +884,192 @@ export const researchArticles: ResearchArticle[] = [
       },
     ],
   },
+  {
+    slug: "grip-strength-predicts-lifespan",
+    system: "Human Upgrade · Fitness",
+    title: "Your handshake is a health test you can pass.",
+    deck:
+      "In large studies, a cheap squeeze of a hand dynamometer tracks who lives longer. The number is not magic in the hand; it is a window on total-body strength.",
+    time: "8 min read",
+    published: "July 2026",
+    reviewed: "July 2026",
+    byline: "Exalt Human Research Desk",
+    image: "/human-atlas.jpg",
+    width: 864,
+    height: 1821,
+    alt: "A full-body anatomical atlas of the human system",
+    caption:
+      "Grip strength is measured with a simple hand dynamometer, but it reflects strength and muscle across the whole body, not just the hand.",
+    sections: [
+      {
+        id: "the-number",
+        title: "One cheap number, a surprising signal",
+        paragraphs: [
+          {
+            text:
+              "A hand dynamometer is a small device you squeeze as hard as you can. It costs little, takes seconds, and needs no lab. Yet across large populations, the number it produces tracks something profound: how likely a person is to die in the years ahead.",
+            citations: [1],
+          },
+          {
+            text:
+              "That sounds like a stretch. It is not. In one of the biggest studies ever done on the question, weaker grip was linked to a higher chance of death from any cause, and from heart disease in particular. The key is understanding what the number actually represents.",
+            citations: [1],
+          },
+        ],
+      },
+      {
+        id: "pure-study",
+        title: "What the largest study found",
+        paragraphs: [
+          {
+            text:
+              "The anchor evidence comes from the Prospective Urban Rural Epidemiology (PURE) study, published in The Lancet in 2015. Researchers measured grip strength in roughly 139,700 adults across 17 countries and followed them for a median of about four years.",
+            citations: [1],
+          },
+          {
+            text:
+              "After accounting for age, education, and other factors, each 5 kilogram drop in grip strength was associated with a 16 percent higher risk of death from any cause and a 17 percent higher risk of death from cardiovascular disease. Striking detail: in this cohort, grip strength predicted death better than systolic blood pressure did.",
+            citations: [1],
+          },
+          {
+            text:
+              "This is not a one-off. A later meta-analysis pooling dozens of cohorts and millions of participants found the same direction of effect, with weaker grip linked to higher all-cause mortality and cardiovascular disease. More recent analyses in United States adults point the same way.",
+            citations: [2, 4],
+          },
+        ],
+        evidence: {
+          strength: "Established",
+          text:
+            "The association between low grip strength and higher mortality is consistent across many large observational studies. But these are observational: grip strength predicts risk, it does not prove that a weak hand causes death. No trial has shown that squeezing a gripper extends life.",
+        },
+      },
+      {
+        id: "why-proxy",
+        title: "Why the hand is a window on the whole body",
+        paragraphs: [
+          {
+            text:
+              "Grip strength is not important because of the hand. It is important because the hand borrows from the same biology as the rest of you. A firm grip usually signals decent overall muscle mass, an intact nervous system driving those muscles, and a body that has weathered less decline.",
+            citations: [3],
+          },
+          {
+            text:
+              "Clinically, low grip strength is a core marker of sarcopenia, the age-related loss of muscle strength and mass. The 2019 European consensus (EWGSOP2) treats muscle strength, measured largely by grip, as the primary sign of the condition, precisely because it is simple, reproducible, and tracks poor outcomes.",
+            citations: [3],
+          },
+          {
+            text:
+              "Think of grip as a resilience gauge. Muscle is not just for lifting; it is a metabolic organ, a reserve the body draws on during illness, injury, and recovery. When that reserve shrinks, the whole system becomes more fragile, and the grip number quietly reflects it.",
+            citations: [3],
+          },
+        ],
+      },
+      {
+        id: "marker-not-lever",
+        title: "A marker, not a magic lever",
+        paragraphs: [
+          {
+            text:
+              "Here is the trap to avoid: treating grip as the thing to fix. Training only your grip with hand grippers will make your grip stronger, but there is no evidence that isolated grip work changes your lifespan. You would be polishing the gauge, not refueling the tank.",
+          },
+          {
+            text:
+              "The number is useful because it summarizes total-body strength. So the honest goal is to build that underlying strength. When overall strength rises, grip tends to follow, and you are improving the thing the marker was pointing at all along.",
+            citations: [3],
+          },
+        ],
+        evidence: {
+          strength: "Context",
+          text:
+            "Grip strength is best read as a low-cost proxy for whole-body strength and muscle health. It is a signpost, not the destination. The intervention with real evidence behind it is building strength across the body, not training the hand in isolation.",
+        },
+      },
+      {
+        id: "what-to-train",
+        title: "What to actually train",
+        paragraphs: [
+          {
+            text:
+              "The lever with the strongest evidence is resistance training. Public health guidance recommends muscle-strengthening activity on at least two days per week, working all major muscle groups: legs, hips, back, chest, abdomen, shoulders, and arms.",
+            citations: [5],
+          },
+          {
+            text:
+              "In practice that means compound movements: squats, hinges, presses, rows, and carries. Carries and pulling movements naturally load the grip, so a strong grip often emerges as a byproduct of training the whole body hard, rather than as a standalone project.",
+            citations: [5],
+          },
+          {
+            text:
+              "You do not need a gym full of machines. Bodyweight work, resistance bands, dumbbells, or loaded carries all count. Progress gradually, aim for roughly one to three sets of 8 to 12 repetitions to start, and prioritize consistency over intensity in the early weeks.",
+            citations: [5],
+          },
+        ],
+      },
+      {
+        id: "limits",
+        title: "Limits and when to seek care",
+        paragraphs: [
+          {
+            text:
+              "A grip test is a screen, not a diagnosis. A single low reading can reflect a recent injury, arthritis, pain, poor technique, or simply a bad day. Trends over months matter more than any one measurement.",
+          },
+          {
+            text:
+              "If your grip is declining without explanation, or you notice unintended weight loss, muscle wasting, frequent falls, or growing weakness, talk to a clinician. These can be signs of sarcopenia or other conditions that deserve a proper assessment rather than a home gadget.",
+            citations: [3],
+          },
+          {
+            text:
+              "The optimistic takeaway is that strength is trainable at almost any age. Grip strength predicts risk, and the underlying strength it reflects is one of the most modifiable things in human health. You cannot change your age, but you can change how strong you are.",
+            citations: [1, 3],
+          },
+        ],
+      },
+    ],
+    takeaways: [
+      "Weaker grip strength is consistently linked to higher all-cause and cardiovascular mortality across large populations.",
+      "The evidence is observational: grip predicts risk, it does not prove a weak hand causes death.",
+      "Grip matters because it reflects total-body strength, muscle mass, and biological resilience, not because of the hand itself.",
+      "Do not train grip in isolation; build overall strength with resistance training on at least two days per week.",
+      "Persistent, unexplained weakness or muscle loss deserves a clinical assessment, not just a home gadget.",
+    ],
+    references: [
+      {
+        title:
+          "Prognostic value of grip strength: findings from the Prospective Urban Rural Epidemiology (PURE) study",
+        source: "The Lancet",
+        year: "2015",
+        href: "https://pubmed.ncbi.nlm.nih.gov/25982160/",
+      },
+      {
+        title:
+          "Association of Grip Strength With Risk of All-Cause Mortality, Cardiovascular Diseases, and Cancer in Community-Dwelling Populations: A Meta-analysis of Prospective Cohort Studies",
+        source: "Journal of the American Medical Directors Association",
+        year: "2017",
+        href: "https://pubmed.ncbi.nlm.nih.gov/28549705/",
+      },
+      {
+        title:
+          "Sarcopenia: revised European consensus on definition and diagnosis (EWGSOP2)",
+        source: "Age and Ageing",
+        year: "2019",
+        href: "https://academic.oup.com/ageing/article/48/1/16/5126243",
+      },
+      {
+        title:
+          "Comparison of grip strength measurements for predicting all-cause mortality among adults aged 20+ years from the NHANES 2011-2014",
+        source: "Scientific Reports (Nature)",
+        year: "2024",
+        href: "https://www.nature.com/articles/s41598-024-80487-y",
+      },
+      {
+        title: "Physical Activity Guidelines for Adults",
+        source: "Centers for Disease Control and Prevention",
+        year: "2023",
+        href: "https://www.cdc.gov/physical-activity-basics/guidelines/index.html",
+      },
+    ],
+  },
 ];
 
 export function getResearchArticle(slug: string) {
