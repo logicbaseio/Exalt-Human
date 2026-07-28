@@ -81,33 +81,143 @@ async function ensureSchema(sql: any) {
 
 // Seed the starter articles as 'live' once, when a fresh DB is first used.
 let seedChecked = false;
+async function metaDone(sql: any, key: string): Promise<boolean> {
+  const rows = await sql`SELECT 1 FROM content_meta WHERE key = ${key} LIMIT 1`;
+  return rows.length > 0;
+}
+async function metaSet(sql: any, key: string) {
+  await sql`INSERT INTO content_meta (key, value) VALUES (${key}, '1') ON CONFLICT (key) DO NOTHING`;
+}
+
 async function maybeSeed(sql: any) {
   if (seedChecked) return;
   seedChecked = true;
   try {
-    const rows = await sql`SELECT COUNT(*)::int AS n FROM content_items`;
-    if ((rows[0]?.n ?? 0) > 0) return;
-    for (const a of researchArticles) {
-      const series = seriesFromSystem(a.system);
-      const pillar = a.system.split("·").slice(-1)[0]?.trim() ?? "";
-      await sql`
-        INSERT INTO content_items
-          (slug, status, series, pillar, system, title, deck, read_time, byline,
-           image, image_alt, image_caption, image_w, image_h,
-           published_label, reviewed_label, sections, takeaways, refs, published_at)
-        VALUES
-          (${a.slug}, 'live', ${series}, ${pillar}, ${a.system}, ${a.title}, ${a.deck},
-           ${a.time}, ${a.byline}, ${a.image}, ${a.alt}, ${a.caption}, ${a.width}, ${a.height},
-           ${a.published}, ${a.reviewed},
-           ${JSON.stringify(a.sections)}::jsonb, ${JSON.stringify(a.takeaways)}::jsonb,
-           ${JSON.stringify(a.references)}::jsonb, now())
-        ON CONFLICT (slug) DO NOTHING
-      `;
+    await sql`CREATE TABLE IF NOT EXISTS content_meta (key text PRIMARY KEY, value text NOT NULL DEFAULT '1')`;
+
+    // Starter articles -> live (idempotent; once per DB).
+    if (!(await metaDone(sql, "articles_seeded"))) {
+      for (const a of researchArticles) {
+        const series = seriesFromSystem(a.system);
+        const pillar = a.system.split("·").slice(-1)[0]?.trim() ?? "";
+        await sql`
+          INSERT INTO content_items
+            (slug, status, series, pillar, system, title, deck, read_time, byline,
+             image, image_alt, image_caption, image_w, image_h,
+             published_label, reviewed_label, sections, takeaways, refs, published_at)
+          VALUES
+            (${a.slug}, 'live', ${series}, ${pillar}, ${a.system}, ${a.title}, ${a.deck},
+             ${a.time}, ${a.byline}, ${a.image}, ${a.alt}, ${a.caption}, ${a.width}, ${a.height},
+             ${a.published}, ${a.reviewed},
+             ${JSON.stringify(a.sections)}::jsonb, ${JSON.stringify(a.takeaways)}::jsonb,
+             ${JSON.stringify(a.references)}::jsonb, now())
+          ON CONFLICT (slug) DO NOTHING
+        `;
+      }
+      await metaSet(sql, "articles_seeded");
+    }
+
+    // Starter ideas -> Planning (idempotent; once per DB, so editing/deleting sticks).
+    if (!(await metaDone(sql, "ideas_seeded"))) {
+      for (const idea of STARTER_IDEAS) {
+        const slug = await uniqueSlug(sql, slugify(idea.title));
+        await sql`
+          INSERT INTO content_items (slug, status, series, pillar, title, note, source_hint)
+          VALUES (${slug}, 'idea', ${idea.series}, ${idea.pillar}, ${idea.title}, ${idea.note}, ${idea.source})
+          ON CONFLICT (slug) DO NOTHING
+        `;
+      }
+      await metaSet(sql, "ideas_seeded");
     }
   } catch {
     /* seeding is best-effort */
   }
 }
+
+/**
+ * Curated starter ideas for the Planning column — a real editorial queue that
+ * balances the pillars and the three series, each with an angle and an anchor
+ * source to verify at draft time. The drafting agent researches these into
+ * cited pieces for review.
+ */
+const STARTER_IDEAS: {
+  title: string;
+  series: Series;
+  pillar: string;
+  note: string;
+  source: string;
+}[] = [
+  {
+    title: "Your phone trained your brain to crave the interruption",
+    series: "hijack",
+    pillar: "Neuroscience",
+    note: "Variable-reward loops and dopamine prediction-error rewire attention toward novelty; the cost is fragmented focus. Actionable: friction, not willpower.",
+    source: "Reward prediction-error / dopamine literature; attention-fragmentation and task-switching studies",
+  },
+  {
+    title: "Creatine may sharpen a tired brain, not just build muscle",
+    series: "upgrade",
+    pillar: "Nutrition",
+    note: "Creatine as a cognitive/energetic tool — strongest signal under sleep deprivation and high cognitive load. Keep dosing and evidence-strength honest.",
+    source: "Creatine + cognition RCTs; sleep-deprivation creatine trials; recent meta-analyses",
+  },
+  {
+    title: "Senolytics: the drugs trying to clear your body's 'zombie' cells",
+    series: "future",
+    pillar: "Longevity",
+    note: "Senescent-cell clearing is one of the most concrete longevity bets — but human evidence is early. Explain the mechanism and the (real) limits.",
+    source: "Senolytics preclinical work + early-phase human trials (dasatinib+quercetin, fisetin)",
+  },
+  {
+    title: "You're carrying sleep debt you can't even feel",
+    series: "hijack",
+    pillar: "Optimization",
+    note: "Chronic mild sleep restriction degrades performance while subjective sleepiness plateaus — you adapt to feeling fine while impaired.",
+    source: "Van Dongen et al. sleep-restriction dose-response studies; performance-decrement literature",
+  },
+  {
+    title: "Grip strength quietly predicts how long you'll live",
+    series: "upgrade",
+    pillar: "Fitness",
+    note: "A cheap hand-dynamometer number tracks all-cause and cardiovascular mortality across populations. Why it's a proxy, and what to actually train.",
+    source: "Leong et al. 2015 (PURE study, The Lancet); grip-strength & mortality cohorts",
+  },
+  {
+    title: "AI is learning to read your retina like a biomarker",
+    series: "future",
+    pillar: "AI & Health",
+    note: "Deep-learning models infer age, cardiovascular risk, and disease from a retinal photo. Promise, plus the validation and equity caveats.",
+    source: "Google/DeepMind retinal-imaging papers (cardiovascular risk, 'retinal age'); Nature/Lancet Digital Health",
+  },
+  {
+    title: "The blood-sugar swings you never notice — and what they mean",
+    series: "hijack",
+    pillar: "Nutrition",
+    note: "Glucose variability in non-diabetics via CGMs: genuinely interesting, heavily over-hyped. Separate what's established from wellness marketing.",
+    source: "CGM / glucose-variability research in non-diabetic adults; critical reviews of CGM-for-wellness claims",
+  },
+  {
+    title: "Zone 2 cardio might be maintenance for your brain",
+    series: "upgrade",
+    pillar: "Neuroscience",
+    note: "Aerobic base training raises BDNF and supports hippocampal health and cognition. Frame as brain upkeep, with honest effect sizes.",
+    source: "Aerobic exercise + BDNF and hippocampal-volume studies; exercise-cognition meta-analyses",
+  },
+  {
+    title: "Muscle is an organ that talks to the rest of your body",
+    series: "future",
+    pillar: "Human Biology",
+    note: "Myokines released by contracting muscle signal to brain, fat, and immune system — reframing exercise as endocrine medicine.",
+    source: "Myokine / exercise-endocrinology reviews (irisin, IL-6 signaling — note contested findings)",
+  },
+  {
+    title: "Why 'just use willpower' is bad behavioral science",
+    series: "hijack",
+    pillar: "Psychology",
+    note: "Durable behavior change comes from context and cues, not grit. What habit research actually shows, and how to design around it.",
+    source: "Habit-formation research (Lally et al.); context-dependent behavior and cue literature",
+  },
+];
 
 function iso(v: any): string {
   return v instanceof Date ? v.toISOString() : String(v ?? "");
