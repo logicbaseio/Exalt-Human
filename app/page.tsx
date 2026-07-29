@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import OptimizationDispatch from "./components/OptimizationDispatch";
 import WholeHumanSystem from "./components/WholeHumanSystem";
 import { listLiveArticles } from "@/lib/content";
@@ -135,6 +136,7 @@ export default async function Home() {
           <nav className="desktop-nav" aria-label="Primary navigation">
             <a href="#atlas">Whole Human</a>
             <a href="#research">Research</a>
+            <Link href="/tools">Tools</Link>
             <a href="#standard">Our standard</a>
           </nav>
 
@@ -150,6 +152,7 @@ export default async function Home() {
             <nav aria-label="Mobile navigation">
               <a href="#atlas">Whole Human</a>
               <a href="#research">Research journal</a>
+              <Link href="/tools">Tools</Link>
               <a href="#standard">Research standard</a>
               <a href="#newsletter">The Dispatch</a>
             </nav>
@@ -404,6 +407,7 @@ export default async function Home() {
             <nav aria-label="Footer navigation">
               <a href="#atlas">Whole Human</a>
               <a href="#research">Research</a>
+              <Link href="/tools">Tools</Link>
               <a href="#standard">Editorial standard</a>
               <a href="#newsletter">The Dispatch</a>
             </nav>
