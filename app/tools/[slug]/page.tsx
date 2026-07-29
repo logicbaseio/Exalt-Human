@@ -107,6 +107,28 @@ export default async function ToolPage({ params }: ToolPageProps) {
         </div>
       </section>
 
+      {tool.safetyNotice ? (
+        <section className="shell" aria-label="Safety notice">
+          <aside className="tool-safety" role="note">
+            <span>{tool.safetyNotice.title}</span>
+            <p>{tool.safetyNotice.body}</p>
+            {tool.safetyNotice.doNotProceedIf?.length ? (
+              <>
+                <p className="tool-safety-sub">
+                  Speak to a doctor before attempting this if any of these apply
+                  to you:
+                </p>
+                <ul>
+                  {tool.safetyNotice.doNotProceedIf.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </aside>
+        </section>
+      ) : null}
+
       <section className="tool-console shell">
         <ToolRunner slug={tool.slug} />
       </section>

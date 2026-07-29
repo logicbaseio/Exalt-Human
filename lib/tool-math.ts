@@ -111,6 +111,12 @@ function gripNormFor(sex: Sex, age: number): GripNorm {
 
 export type GripResult = {
   percentile: number;
+  /**
+   * How to render the percentile. The norm table is a set of rounded
+   * reference points, so a bare number like "84th" implies precision it does
+   * not have; the UI shows this string instead.
+   */
+  percentileLabel: string;
   z: number;
   ageMean: number;
   /** Age at which this grip would sit at the population median. */
@@ -139,8 +145,15 @@ export function gripPercentile(
   }
   if (strengthAge === null) strengthAge = 85;
 
+  // Rounded to the nearest 5 and given open-ended top and bottom labels: the
+  // underlying norms cannot support finer resolution than this.
+  const rounded = Math.round(percentile / 5) * 5;
+  const percentileLabel =
+    percentile >= 97 ? "Top 5%" : percentile <= 3 ? "Bottom 5%" : `~${rounded}th`;
+
   return {
     percentile: round(percentile),
+    percentileLabel,
     z: round(z, 2),
     ageMean: norm.mean,
     strengthAge,
@@ -322,13 +335,30 @@ export const GOALS: { id: GoalId; label: string; detail: string; adjust: number 
   { id: "gain", label: "Build muscle", detail: "Roughly a 10% surplus", adjust: 0.1 },
 ];
 
+/**
+ * Minimum daily intake this tool will plan for. These are the bottom of the
+ * intake ranges prescribed in the 2013 AHA/ACC/TOS guideline, not proven
+ * physiological safety limits. Kept identical to the meal planner so the two
+ * tools cannot contradict each other.
+ */
+export const ENERGY_FLOOR: Record<Sex, number> = { male: 1500, female: 1200 };
+
+export type EnergyWarning = { id: string; severity: "info" | "caution"; text: string };
+
 export type EnergyResult = {
+  /** Set when the tool refuses to return a target at all. */
+  blocked: "under-18" | "underweight-deficit" | null;
+  blockedMessage?: string;
   bmr: number;
   tdee: number;
   target: number;
   proteinG: number;
   fatG: number;
   carbG: number;
+  bmi: number;
+  clampedToFloor: boolean;
+  proteinBasis: "current bodyweight" | "healthy-range reference weight";
+  warnings: EnergyWarning[];
 };
 
 export function energyAndMacros(opts: {
@@ -339,20 +369,108 @@ export function energyAndMacros(opts: {
   activity: ActivityId;
   goal: GoalId;
 }): EnergyResult {
-  const bmr = bmrMifflinStJeor(opts);
-  const factor =
-    ACTIVITY_LEVELS.find((a) => a.id === opts.activity)?.factor ?? 1.375;
-  const tdee = round(bmr * factor);
-  const adjust = GOALS.find((g) => g.id === opts.goal)?.adjust ?? 0;
-  const target = round(tdee * (1 + adjust));
+  const warnings: EnergyWarning[] = [];
+  const metres = opts.heightCm / 100;
+  const bmi = round(opts.weightKg / (metres * metres), 1);
 
-  // Protein: higher on a deficit to protect lean mass (Morton 2018; ISSN).
+  const bmr = bmrMifflinStJeor(opts);
+  const factor = ACTIVITY_LEVELS.find((a) => a.id === opts.activity)?.factor ?? 1.375;
+  const tdee = round(bmr * factor);
+
+  const empty = {
+    bmr,
+    tdee,
+    target: 0,
+    proteinG: 0,
+    fatG: 0,
+    carbG: 0,
+    bmi,
+    clampedToFloor: false,
+    proteinBasis: "current bodyweight" as const,
+    warnings,
+  };
+
+  // Prediction equations for resting metabolism are validated in adults.
+  if (opts.age < 18) {
+    return {
+      ...empty,
+      blocked: "under-18",
+      blockedMessage:
+        "This calculator is built for adults. The equation behind it is validated in adults, and energy needs during growth are different. For someone under 18, targets should be set with a doctor or a registered dietitian rather than a calculator.",
+    };
+  }
+
+  if (opts.goal === "lose" && bmi < 18.5) {
+    return {
+      ...empty,
+      blocked: "underweight-deficit",
+      blockedMessage: `Your BMI is ${bmi}, below the healthy range of 18.5, so this tool will not calculate a fat-loss target. If you want to understand your maintenance needs, switch the goal to Maintain. If your weight has been falling without you intending it, that is worth raising with a doctor.`,
+    };
+  }
+
+  const adjust = GOALS.find((g) => g.id === opts.goal)?.adjust ?? 0;
+  let target = round(tdee * (1 + adjust));
+
+  let clampedToFloor = false;
+  const floor = ENERGY_FLOOR[opts.sex];
+  if (opts.goal === "lose" && target < floor) {
+    target = floor;
+    clampedToFloor = true;
+    warnings.push({
+      id: "floor",
+      severity: "caution",
+      text: `A 20% deficit would put you below ${floor} kcal a day, so the target has been raised to ${floor}. That figure is the bottom of the intake range major guidelines prescribe for weight loss, not a proven safety limit. Planning below it is where medical supervision belongs.`,
+    });
+  }
+
+  // Above BMI 30, g/kg on total bodyweight overshoots. Use a reference weight
+  // from the healthy range, matching the meal planner so the two agree.
+  const useReference = bmi >= 30;
+  const referenceWeight = useReference
+    ? ((18.5 + 25) / 2) * metres * metres
+    : opts.weightKg;
+
   const proteinPerKg = opts.goal === "lose" ? 2.0 : opts.goal === "gain" ? 1.8 : 1.6;
-  const proteinG = round(opts.weightKg * proteinPerKg);
-  const fatG = round(Math.max(opts.weightKg * 0.8, (target * 0.25) / 9));
+  let proteinG = round(referenceWeight * proteinPerKg);
+  let fatG = round(Math.max(referenceWeight * 0.8, (target * 0.25) / 9));
+
+  // Protein and fat alone can exceed a low target. Scale both back so the
+  // split always reconciles with the number shown, keeping fat at the 20%
+  // of energy that the AMDR treats as a cardiometabolic floor.
+  const nonCarb = proteinG * 4 + fatG * 9;
+  if (nonCarb > target) {
+    const fatFloorG = round((target * 0.2) / 9);
+    const proteinBudget = Math.max(target - fatFloorG * 9, 0);
+    proteinG = round(proteinBudget / 4);
+    fatG = fatFloorG;
+    warnings.push({
+      id: "tight-budget",
+      severity: "info",
+      text: "At this calorie target there is not room for the full protein and fat allowance plus carbohydrate. Protein has been fitted to the remaining budget after keeping fat at 20% of calories. In practice this is a sign the target is low for your body size.",
+    });
+  }
+
   const carbG = round(Math.max((target - proteinG * 4 - fatG * 9) / 4, 0));
 
-  return { bmr, tdee, target, proteinG, fatG, carbG };
+  if (opts.age >= 65) {
+    warnings.push({
+      id: "older-adult",
+      severity: "info",
+      text: "Past 65, protecting muscle matters more than the calorie number. If you are aiming to lose weight, pair it with resistance training and keep protein at the higher end, and raise unintentional weight loss with a clinician.",
+    });
+  }
+
+  return {
+    ...empty,
+    blocked: null,
+    target,
+    proteinG,
+    fatG,
+    carbG,
+    clampedToFloor,
+    proteinBasis: useReference ? "healthy-range reference weight" : "current bodyweight",
+    warnings,
+  };
 }
 
 /* ------------------------------------------------------------------ *
@@ -385,17 +503,44 @@ export const PROTEIN_GOALS: {
   { id: "older", label: "Older adult", detail: "Aged 65+, countering muscle loss", low: 1.2, high: 1.5 },
 ];
 
-export function proteinNeeds(weightKg: number, goal: ProteinGoal) {
+/**
+ * Height is optional, but supplying it matters at higher bodyweights: above
+ * BMI 30, applying g/kg to total bodyweight overshoots badly, and the
+ * conventional adjustment is to use a reference weight from the healthy
+ * range. The energy and meal-planner tools already do this, so without it
+ * this tool would contradict them for the same person.
+ */
+export function proteinNeeds(
+  weightKg: number,
+  goal: ProteinGoal,
+  heightCm?: number,
+) {
   const row = PROTEIN_GOALS.find((g) => g.id === goal) ?? PROTEIN_GOALS[1];
-  const low = round(weightKg * row.low);
-  const high = round(weightKg * row.high);
+
+  let basisWeight = weightKg;
+  let usedReference = false;
+  let bmi: number | null = null;
+  if (heightCm && heightCm > 100) {
+    const metres = heightCm / 100;
+    bmi = round(weightKg / (metres * metres), 1);
+    if (bmi >= 30) {
+      basisWeight = ((18.5 + 25) / 2) * metres * metres;
+      usedReference = true;
+    }
+  }
+
+  const low = round(basisWeight * row.low);
+  const high = round(basisWeight * row.high);
   return {
     low,
     high,
     perKgLow: row.low,
     perKgHigh: row.high,
     perMeal: round(((low + high) / 2) / 4),
-    rda: round(weightKg * 0.8),
+    rda: round(basisWeight * 0.8),
+    bmi,
+    usedReference,
+    basisWeight: round(basisWeight, 1),
   };
 }
 
@@ -418,8 +563,22 @@ export type BedtimeOption = {
 };
 
 export function bedtimesForWake(wakeTime: string): BedtimeOption[] {
-  const [h, m] = wakeTime.split(":").map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return [];
+  const parts = (wakeTime ?? "").split(":");
+  const h = Number(parts[0]);
+  const m = Number(parts[1]);
+  // A cleared <input type="time"> yields "", which previously produced
+  // "NaN:NaN" bedtimes on screen.
+  if (
+    parts.length < 2 ||
+    !Number.isFinite(h) ||
+    !Number.isFinite(m) ||
+    h < 0 ||
+    h > 23 ||
+    m < 0 ||
+    m > 59
+  ) {
+    return [];
+  }
   const wakeMinutes = h * 60 + m;
 
   return [6, 5, 4, 3].map((cycles) => {

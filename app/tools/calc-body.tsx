@@ -226,7 +226,12 @@ export function EnergyMacrosTool() {
         ready={!!result}
         emptyMessage="Fill in your details to estimate what your body burns."
       >
-        {result ? (
+        {result?.blocked ? (
+          <div className="tool-blocked">
+            <span>This tool will not calculate that</span>
+            <p>{result.blockedMessage}</p>
+          </div>
+        ) : result ? (
           <>
             <ResultHero
               value={result.target.toLocaleString()}
@@ -268,6 +273,25 @@ export function EnergyMacrosTool() {
               a day from the estimate. Use this as a starting point, then adjust
               based on what your weight actually does over two to three weeks.
             </ToolNote>
+
+            {result.proteinBasis === "healthy-range reference weight" ? (
+              <ToolNote strength="Context">
+                Your protein and fat targets are set from a reference weight in
+                the healthy range for your height rather than your current
+                weight. Applying grams per kilogram to total bodyweight
+                overshoots at higher BMIs, so this is the conventional
+                adjustment.
+              </ToolNote>
+            ) : null}
+
+            {result.warnings.map((warning) => (
+              <ToolNote
+                key={warning.id}
+                strength={warning.severity === "caution" ? "Caution" : "Context"}
+              >
+                {warning.text}
+              </ToolNote>
+            ))}
           </>
         ) : null}
       </ResultPanel>
@@ -282,15 +306,19 @@ export function EnergyMacrosTool() {
 export function ProteinTool() {
   const [units, setUnits] = useState<UnitSystem>("metric");
   const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
   const [goal, setGoal] = useState<ProteinGoal>("active");
 
   const weightRaw = num(weight);
+  const heightRaw = num(height);
   const weightKg = weightRaw === null ? null : units === "metric" ? weightRaw : lbToKg(weightRaw);
+  const heightCm =
+    heightRaw === null ? undefined : units === "metric" ? heightRaw : inToCm(heightRaw);
   const ready = weightKg !== null && weightKg > 25 && weightKg < 300;
 
   const result = useMemo(
-    () => (ready ? proteinNeeds(weightKg!, goal) : null),
-    [ready, weightKg, goal],
+    () => (ready ? proteinNeeds(weightKg!, goal, heightCm) : null),
+    [ready, weightKg, goal, heightCm],
   );
   const row = PROTEIN_GOALS.find((g) => g.id === goal)!;
 
@@ -306,6 +334,18 @@ export function ProteinTool() {
             onChange={setWeight}
             step={0.5}
             placeholder={units === "metric" ? "78" : "172"}
+          />
+        </Field>
+        <Field
+          label="Height (optional)"
+          suffix={units === "metric" ? "cm" : "in"}
+          hint="Worth adding. Above a BMI of 30, targets set per kilogram of total bodyweight overshoot, and height lets the tool use a reference weight instead."
+        >
+          <NumberInput
+            value={height}
+            onChange={setHeight}
+            step={0.5}
+            placeholder={units === "metric" ? "178" : "70"}
           />
         </Field>
         <Field label="Your situation">
@@ -328,7 +368,11 @@ export function ProteinTool() {
               value={`${result.low}-${result.high}`}
               unit=" g/day"
               band={row.label}
-              caption={`That is ${row.low} to ${row.high} grams per kilogram of bodyweight.`}
+              caption={
+                result.usedReference
+                  ? `That is ${row.low} to ${row.high} grams per kilogram, applied to a reference weight of ${result.basisWeight} kg rather than your current weight, because your BMI is ${result.bmi}.`
+                  : `That is ${row.low} to ${row.high} grams per kilogram of bodyweight.`
+              }
             />
             <ResultStats
               stats={[
@@ -354,6 +398,23 @@ export function ProteinTool() {
               individual variation above that. The RDA of 0.8 g/kg is a floor
               designed to prevent deficiency, not a target for building muscle.
             </ToolNote>
+
+            {result.usedReference ? (
+              <ToolNote strength="Context">
+                Because your BMI is {result.bmi}, this target is set from a
+                reference weight in the healthy range for your height rather
+                than your current weight. Applying grams per kilogram to total
+                bodyweight overshoots at higher BMIs. The energy and meal
+                planner tools use the same adjustment, so all three agree.
+              </ToolNote>
+            ) : result.bmi === null ? (
+              <ToolNote strength="Context">
+                Add your height for a better target. Above a BMI of 30, setting
+                protein per kilogram of total bodyweight overshoots, and the
+                conventional adjustment is to use a reference weight from the
+                healthy range instead.
+              </ToolNote>
+            ) : null}
           </>
         ) : null}
       </ResultPanel>

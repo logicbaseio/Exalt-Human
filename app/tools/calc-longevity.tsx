@@ -17,6 +17,9 @@ import {
   lifestyleAge,
   LIFESTYLE_FACTORS,
   FACTOR_ACTIONS,
+  EQUAL_WEIGHTING_CAVEAT,
+  ALCOHOL_CAVEAT,
+  COHORT_CAVEAT,
   type LifestyleFactorId,
 } from "@/lib/tool-lifestyle";
 import {
@@ -50,7 +53,7 @@ export function GripStrengthTool() {
   const ageN = num(age);
   const gripRaw = num(grip);
   const gripKg = gripRaw === null ? null : unit === "kg" ? gripRaw : lbToKg(gripRaw);
-  const ready = ageN !== null && ageN >= 18 && ageN <= 100 && gripKg !== null && gripKg > 0;
+  const ready = ageN !== null && ageN >= 20 && ageN <= 100 && gripKg !== null && gripKg > 0;
 
   const result = useMemo(
     () => (ready ? gripPercentile(gripKg!, ageN!, sex) : null),
@@ -63,8 +66,12 @@ export function GripStrengthTool() {
         <Field label="Sex">
           <Segmented options={SEXES} value={sex} onChange={setSex} ariaLabel="Sex" />
         </Field>
-        <Field label="Age" suffix="years">
-          <NumberInput value={age} onChange={setAge} min={18} max={100} placeholder="45" />
+        <Field
+          label="Age"
+          suffix="years"
+          hint="The published norms this uses begin at 20."
+        >
+          <NumberInput value={age} onChange={setAge} min={20} max={100} placeholder="45" />
         </Field>
         <Field label="Measurement unit">
           <Segmented
@@ -100,10 +107,10 @@ export function GripStrengthTool() {
         {result ? (
           <>
             <ResultHero
-              value={`${result.percentile}`}
-              unit="th percentile"
+              value={result.percentileLabel}
+              unit={result.percentileLabel.startsWith("~") ? " percentile" : ""}
               band={result.band}
-              caption={`The average for your age and sex is about ${result.ageMean} kg.`}
+              caption={`The average for your age and sex is about ${result.ageMean} kg. The percentile is approximate: it comes from rounded reference values, so read the band rather than the exact number.`}
             />
             <PercentileBar percentile={result.percentile} lowLabel="Weaker" highLabel="Stronger" />
             <ResultStats
@@ -351,28 +358,32 @@ export function LifestyleAgeTool() {
         {result ? (
           <>
             <ResultHero
-              value={result.lifestyleAge}
+              value={result.yearsStillAvailable}
               unit=" years"
               band={result.band}
               caption={
-                result.yearsVsTypical === 0
-                  ? "Your habits sit around the cohort's typical pattern, so your lifestyle age matches your actual age."
-                  : result.yearsVsTypical > 0
-                    ? `Your habits track ${Math.abs(result.yearsVsTypical)} years better than a typical pattern.`
-                    : `Your habits track ${Math.abs(result.yearsVsTypical)} years worse than a typical pattern.`
+                result.missing.length === 0
+                  ? "You already have all five low-risk factors. In the source cohort that group lived substantially longer than those with none."
+                  : `That is the additional life expectancy the study associated with the ${result.missing.length} factor${result.missing.length === 1 ? "" : "s"} you have not ticked. It is a group average, not a prediction about you.`
               }
             />
             <ResultStats
               stats={[
-                { label: "Actual age", value: `${ageN} years` },
                 {
                   label: "Low-risk factors",
                   value: `${result.factorCount} of 5`,
                 },
                 {
+                  label: "Years gained so far",
+                  value: `${result.yearsVsZero} years`,
+                  note: "Versus someone with none of the five.",
+                },
+                {
                   label: "Life expectancy at 50",
                   value: `${result.lifeExpectancyAt50} more years`,
-                  note: "As observed for this factor count in the source cohort.",
+                  note: result.isReportedDirectly
+                    ? "Reported directly by the study for this factor count."
+                    : "Interpolated between the two counts the study reports.",
                 },
               ]}
             />
@@ -399,6 +410,10 @@ export function LifestyleAgeTool() {
               biological ageing you need laboratory testing, such as an
               epigenetic clock.
             </ToolNote>
+
+            <ToolNote strength="Context">{EQUAL_WEIGHTING_CAVEAT}</ToolNote>
+            <ToolNote strength="Context">{ALCOHOL_CAVEAT}</ToolNote>
+            <ToolNote strength="Context">{COHORT_CAVEAT}</ToolNote>
 
             <p className="tool-cross-link">
               Curious what strength has to do with this?{" "}

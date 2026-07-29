@@ -4326,6 +4326,63 @@ a {
   letter-spacing: 0.08em;
 }
 
+/* ---------- Tool safety notice (above the calculator) ---------- */
+
+.tool-safety {
+  margin-top: 40px;
+  padding: 24px 26px;
+  border: 1px solid var(--ink);
+  border-left: 4px solid var(--signal);
+  background: var(--paper);
+}
+
+.tool-safety > span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--signal);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tool-safety p {
+  max-width: 76ch;
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.68;
+}
+
+.tool-safety-sub {
+  margin-top: 16px !important;
+  font-weight: 560;
+}
+
+.tool-safety ul {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tool-safety li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.tool-safety li::before {
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 7px;
+  height: 1px;
+  background: var(--signal);
+  content: "";
+}
+
 /* ---------- Console layout ---------- */
 
 .tool-console {

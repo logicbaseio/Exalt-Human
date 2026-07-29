@@ -318,6 +318,14 @@ export function buildPlan(opts: {
     });
   }
 
+  if (age >= 65 && direction === "lose") {
+    warnings.push({
+      id: "older-adult",
+      severity: "caution",
+      text: "Past 65, losing weight carries a real risk of losing muscle and bone alongside fat, and low muscle mass is itself a hazard. If you take this on, pair it with resistance training and keep protein at the higher end. Weight that is falling without you intending it is a different matter entirely and should be raised with a doctor rather than planned for.",
+    });
+  }
+
   warnings.push({
     id: "projection",
     severity: "info",

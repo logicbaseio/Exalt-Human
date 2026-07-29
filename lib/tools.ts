@@ -42,12 +42,27 @@ export type Tool = {
   /** Alt text for the thumbnail. */
   thumbAlt: string;
   explainer: ToolExplainer;
+  /**
+   * A safety notice shown ABOVE the calculator, before the user acts.
+   * Reserved for cases where acting on the tool without knowing something
+   * first could cause harm: a physical test that needs screening, a
+   * contraindication, or a population the tool should not serve.
+   */
+  safetyNotice?: ToolSafetyNotice;
   /** Slug of the research article this tool sits alongside, if any. */
   relatedArticle?: string;
   relatedArticleTitle?: string;
   /** What the tool cannot tell you. Rendered on every tool page. */
   limitation: string;
   references: ToolReference[];
+};
+
+export type ToolSafetyNotice = {
+  /** Short label, e.g. "Before you attempt this test". */
+  title: string;
+  body: string;
+  /** Specific conditions under which the reader should not proceed alone. */
+  doNotProceedIf?: string[];
 };
 
 export const TOOLS: Tool[] = [
@@ -109,6 +124,21 @@ export const TOOLS: Tool[] = [
   },
   {
     slug: "vo2-max-estimator",
+    safetyNotice: {
+      title: "Before you attempt the walk or run test",
+      body:
+        "Two of the three methods here ask for hard physical effort. The Cooper test is a maximal effort and the one-mile walk is close to it. Sudden vigorous exertion carries real cardiac risk for people who are not conditioned for it. If you are unsure whether hard exercise is suitable for you, use the resting heart-rate method instead, which needs no exertion at all, and speak to a doctor before testing. Stop immediately and seek help if you get chest pain or pressure, become unusually breathless, feel light-headed, or feel unwell.",
+      doNotProceedIf: [
+        "You have a known heart condition, or have had a heart attack, stroke, or heart surgery",
+        "You get chest pain, pressure or tightness, whether at rest or on exertion",
+        "You have become dizzy, light-headed or lost consciousness during exercise",
+        "You have high blood pressure that is not controlled, or you do not know your blood pressure",
+        "You have a chronic condition or disability and have not discussed exercise with your clinician",
+        "You are pregnant, or have given birth in the last few months",
+        "You have been advised to exercise only under medical supervision",
+        "You are over 40, currently inactive, and planning to start vigorous exercise",
+      ],
+    },
     thumb: "/tools/vo2-max-estimator.jpg",
     thumbAlt: "A translucent anatomical scan of lungs and heart, airways glowing",
     explainer: {
@@ -167,6 +197,11 @@ export const TOOLS: Tool[] = [
   },
   {
     slug: "waist-to-height-ratio",
+    safetyNotice: {
+      title: "Adults only",
+      body:
+        "The boundaries here are for adults and are not valid during pregnancy, when waist measurement no longer reflects central fat. Children are assessed differently.",
+    },
     thumb: "/tools/waist-to-height-ratio.jpg",
     thumbAlt: "A translucent anatomical scan of a torso with a luminous band at the waist",
     explainer: {
@@ -215,6 +250,11 @@ export const TOOLS: Tool[] = [
   },
   {
     slug: "energy-and-macros",
+    safetyNotice: {
+      title: "Who this calculator is not for",
+      body:
+        "The equation behind this is validated in healthy adults. It does not account for pregnancy or breastfeeding, when energy needs rise and a deficit is not appropriate, and it should not be used to set targets for anyone under 18. If you are managing a medical condition that affects your diet, or you have a history of an eating disorder, set targets with a clinician or a registered dietitian rather than a calculator.",
+    },
     thumb: "/tools/energy-and-macros.jpg",
     thumbAlt: "A glowing cluster of mitochondria inside a cell",
     explainer: {
@@ -267,6 +307,11 @@ export const TOOLS: Tool[] = [
   },
   {
     slug: "protein-needs",
+    safetyNotice: {
+      title: "One contraindication to know first",
+      body:
+        "Higher protein intakes are not appropriate for everyone. In chronic kidney disease, protein intake is usually restricted rather than increased, and raising it can be harmful. Some liver conditions also require a set protein intake. If you have reduced kidney function, liver disease, or you are not sure, your target should be set by a clinician or a registered dietitian and not by this calculator. These ranges assume generally healthy adults.",
+    },
     thumb: "/tools/protein-needs.jpg",
     thumbAlt: "A close-up bundle of glowing skeletal muscle fibres",
     explainer: {
@@ -319,6 +364,11 @@ export const TOOLS: Tool[] = [
   },
   {
     slug: "sleep-calculator",
+    safetyNotice: {
+      title: "When sleep needs a clinician, not a calculator",
+      body:
+        "No calculator can rule out a sleep disorder. Loud snoring with pauses in breathing, gasping or choking in your sleep, severe daytime sleepiness, or falling asleep during the day deserve medical assessment, and sleep apnoea is both common and treatable. Sleepiness at the wheel is a genuine danger: do not drive when you are struggling to stay awake.",
+    },
     thumb: "/tools/sleep-calculator.jpg",
     thumbAlt: "A translucent head in profile with the brain glowing softly at rest",
     explainer: {
@@ -410,6 +460,11 @@ export const TOOLS: Tool[] = [
   },
   {
     slug: "bmi-calculator",
+    safetyNotice: {
+      title: "Adults only",
+      body:
+        "These categories apply to adults. BMI is interpreted completely differently in children and teenagers, where it is read against age and sex growth percentiles rather than fixed cut-offs, so do not use this for anyone under 18. BMI is also not a meaningful measure during pregnancy.",
+    },
     thumb: "/tools/bmi-calculator.jpg",
     thumbAlt: "A translucent standing human body seen from the front, glowing from within",
     explainer: {
@@ -482,6 +537,11 @@ export const TOOLS: Tool[] = [
   },
   {
     slug: "meal-planner",
+    safetyNotice: {
+      title: "Who this planner is not for",
+      body:
+        "This is a general-purpose calculator for healthy adults, and it cannot see your medical history. It does not model pregnancy or breastfeeding, when energy and nutrient needs rise and a deficit is not appropriate. If you are pregnant or breastfeeding, living with an eating disorder or a history of one, managing diabetes or another condition that affects what you eat, or taking medication that affects appetite or weight, take your plan to a clinician or a registered dietitian instead of following this one. If thinking about food and weight is causing you distress, that is worth talking to someone about, and it matters more than any number here.",
+    },
     thumb: "/tools/meal-planner.jpg",
     thumbAlt: "A plate of food seen from above, each portion glowing with warm light",
     explainer: {
