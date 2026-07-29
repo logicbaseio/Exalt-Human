@@ -271,16 +271,48 @@ export function vo2Percentile(vo2: number, age: number, sex: Sex) {
  * and ≥0.6 further increased risk.
  * ------------------------------------------------------------------ */
 
+/**
+ * WHO waist circumference cut-offs, which unlike the ratio ARE sex-specific.
+ * Men 94 cm increased / 102 cm substantially increased; women 80 / 88.
+ * Derived mainly from studies in predominantly European populations, so they
+ * transfer imperfectly to other groups.
+ */
+export const WAIST_THRESHOLDS: Record<Sex, { increased: number; high: number }> = {
+  male: { increased: 94, high: 102 },
+  female: { increased: 80, high: 88 },
+};
+
 export type WhtrResult = {
   ratio: number;
   category: "Low" | "Healthy" | "Increased" | "Further increased";
   note: string;
   halfHeightCm: number;
+  /** Where the raw waist measurement sits against the WHO cut-offs for this sex. */
+  waistStatus: "Below the increased-risk cut-off" | "At or above increased risk" | "At or above substantially increased risk";
+  thresholds: { increased: number; high: number };
 };
 
-export function waistToHeight(waistCm: number, heightCm: number): WhtrResult {
+/**
+ * The ratio boundaries are deliberately the same for men and women. A
+ * meta-analysis across fourteen countries put the boundary at 0.50 for both
+ * sexes, and not needing sex-specific cut-offs is the main advantage this
+ * measure has over waist circumference alone. Sex is used here only for the
+ * WHO waist-circumference comparison, where it genuinely matters.
+ */
+export function waistToHeight(
+  waistCm: number,
+  heightCm: number,
+  sex: Sex = "male",
+): WhtrResult {
   const ratio = round(waistCm / heightCm, 3);
   const halfHeightCm = round(heightCm / 2, 1);
+  const thresholds = WAIST_THRESHOLDS[sex];
+  const waistStatus =
+    waistCm >= thresholds.high
+      ? "At or above substantially increased risk"
+      : waistCm >= thresholds.increased
+        ? "At or above increased risk"
+        : "Below the increased-risk cut-off";
 
   let category: WhtrResult["category"] = "Healthy";
   let note =
@@ -300,7 +332,7 @@ export function waistToHeight(waistCm: number, heightCm: number): WhtrResult {
       "This ratio sits in the band associated with increased health risk from central fat. Waist is a better guide here than weight alone.";
   }
 
-  return { ratio, category, note, halfHeightCm };
+  return { ratio, category, note, halfHeightCm, waistStatus, thresholds };
 }
 
 /* ------------------------------------------------------------------ *

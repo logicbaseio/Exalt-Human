@@ -45,6 +45,7 @@ type UnitSystem = "metric" | "imperial";
 
 export function WaistHeightTool() {
   const [units, setUnits] = useState<UnitSystem>("metric");
+  const [sex, setSex] = useState<Sex>("male");
   const [waist, setWaist] = useState("");
   const [height, setHeight] = useState("");
 
@@ -56,22 +57,27 @@ export function WaistHeightTool() {
     waistCm !== null && heightCm !== null && waistCm > 20 && heightCm > 100;
 
   const result = useMemo(
-    () => (ready ? waistToHeight(waistCm!, heightCm!) : null),
-    [ready, waistCm, heightCm],
+    () => (ready ? waistToHeight(waistCm!, heightCm!, sex) : null),
+    [ready, waistCm, heightCm, sex],
   );
 
-  const targetWaist =
-    heightCm !== null
-      ? units === "metric"
-        ? `${round(heightCm / 2, 1)} cm`
-        : `${round(heightCm / 2 / 2.54, 1)} in`
-      : "";
+  /** Render a centimetre figure in whichever unit the user picked. */
+  const asUnit = (cm: number) =>
+    units === "metric" ? `${round(cm, 1)} cm` : `${round(cm / 2.54, 1)} in`;
+
+  const targetWaist = heightCm !== null ? asUnit(heightCm / 2) : "";
 
   return (
     <div className="tool-layout">
       <form className="tool-form" onSubmit={(e) => e.preventDefault()}>
         <Field label="Units">
           <Segmented options={UNITS} value={units} onChange={setUnits} ariaLabel="Units" />
+        </Field>
+        <Field
+          label="Sex"
+          hint="The ratio boundaries are the same for men and women. Sex is used for the WHO waist-circumference cut-offs, which do differ."
+        >
+          <Segmented options={SEXES} value={sex} onChange={setSex} ariaLabel="Sex" />
         </Field>
         <Field label="Height" suffix={units === "metric" ? "cm" : "in"}>
           <NumberInput
@@ -108,23 +114,69 @@ export function WaistHeightTool() {
             />
             <ResultStats
               stats={[
-                { label: "Your ratio", value: result.ratio.toFixed(2) },
                 {
-                  label: "Healthy boundary",
-                  value: "Below 0.50",
-                  note: `For your height that means a waist under ${targetWaist}.`,
+                  label: "Target waist for your height",
+                  value: `Under ${targetWaist}`,
+                  note: "Half your height. This target is the same for men and women.",
                 },
                 {
-                  label: "Category",
-                  value: result.category,
+                  label: `WHO cut-off, ${sex === "male" ? "men" : "women"}`,
+                  value: `${asUnit(result.thresholds.increased)} / ${asUnit(result.thresholds.high)}`,
+                  note: "Increased risk, then substantially increased risk.",
+                },
+                {
+                  label: "Against that cut-off",
+                  value: result.waistStatus.startsWith("Below")
+                    ? "Below both"
+                    : result.waistStatus.includes("substantially")
+                      ? "Above both"
+                      : "Above the first",
                 },
               ]}
             />
+
+            <div className="tool-actions">
+              <p className="tool-field-label">Two different targets, and why</p>
+              <ul>
+                <li>
+                  <b>Under {targetWaist} - your ratio target</b>
+                  <span>
+                    Keeping your waist under half your height. A meta-analysis
+                    across fourteen countries put this boundary at 0.50 for both
+                    sexes, and not needing separate numbers for men and women is
+                    the main advantage this measure has over waist alone.
+                  </span>
+                </li>
+                <li>
+                  <b>
+                    Under {asUnit(result.thresholds.increased)} - the WHO cut-off
+                    for {sex === "male" ? "men" : "women"}
+                  </b>
+                  <span>
+                    A fixed threshold that does differ by sex, because men and
+                    women store fat differently. It takes no account of your
+                    height, which is why a tall person can clear the ratio target
+                    while sitting above this figure, and a shorter person the
+                    reverse.
+                  </span>
+                </li>
+              </ul>
+            </div>
+
             <ToolNote strength="Established">
               Waist-to-height ratio tracks central body fat better than BMI,
               because it accounts for where fat sits rather than weight alone.
               It still describes one dimension of health, and it does not
               distinguish muscle from fat elsewhere on the body.
+            </ToolNote>
+
+            <ToolNote strength="Context">
+              Where the two targets disagree, the ratio is usually the better
+              guide for an individual, because it adjusts for your height. The
+              WHO waist cut-offs come mainly from studies in predominantly
+              European populations, and lower thresholds are recommended for some
+              groups, so read them as a rough second opinion rather than a
+              precise line.
             </ToolNote>
           </>
         ) : null}
