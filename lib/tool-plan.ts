@@ -14,7 +14,17 @@
  *    outside the range a general-purpose tool should serve.
  */
 
-import { bmrMifflinStJeor, ACTIVITY_LEVELS, round, clamp, type Sex, type ActivityId } from "./tool-math";
+import {
+  bmrMifflinStJeor,
+  ACTIVITY_LEVELS,
+  round,
+  clamp,
+  LACTATION_KCAL,
+  PERINATAL_BLOCK_MESSAGE,
+  type Sex,
+  type ActivityId,
+  type PerinatalStatus,
+} from "./tool-math";
 import { calculateBmi } from "./tool-bmi";
 
 /** Energy density of body tissue lost or gained, kcal per kg. */
@@ -53,7 +63,11 @@ export type PlanBlocker =
   | "under-18"
   | "goal-underweight"
   | "already-underweight"
-  | "no-change";
+  | "no-change"
+  | "pregnant";
+
+/** Fastest loss this tool will schedule while breastfeeding. */
+export const MAX_LOSS_KG_PER_WEEK_LACTATING = 0.5;
 
 export type PlanWarning = {
   id: string;
@@ -129,8 +143,10 @@ export function buildPlan(opts: {
   activity: ActivityId;
   /** Desired kg per week. Positive number; direction is inferred. */
   rateKgPerWeek: number;
+  perinatal?: PerinatalStatus;
 }): PlanResult {
   const { sex, age, heightCm, currentKg, goalKg, activity } = opts;
+  const perinatal = opts.perinatal ?? "none";
   const warnings: PlanWarning[] = [];
 
   const startBmiResult = calculateBmi({ weightKg: currentKg, heightCm });
@@ -157,6 +173,10 @@ export function buildPlan(opts: {
   };
 
   /* ---- Blocking conditions: refuse rather than plan ---- */
+
+  if (perinatal === "pregnant") {
+    return { ...base, blocked: "pregnant", blockedMessage: PERINATAL_BLOCK_MESSAGE };
+  }
 
   if (age < 18) {
     return {
@@ -197,7 +217,11 @@ export function buildPlan(opts: {
 
   /* ---- Rate: cap to something the evidence supports ---- */
 
-  const maxLoss = Math.min(MAX_LOSS_KG_PER_WEEK, currentKg * MAX_LOSS_FRACTION_PER_WEEK);
+  const maxLoss = Math.min(
+    MAX_LOSS_KG_PER_WEEK,
+    currentKg * MAX_LOSS_FRACTION_PER_WEEK,
+    perinatal === "breastfeeding" ? MAX_LOSS_KG_PER_WEEK_LACTATING : Infinity,
+  );
   const cap = direction === "lose" ? maxLoss : MAX_GAIN_KG_PER_WEEK;
   const requested = Math.abs(opts.rateKgPerWeek);
   const effectiveRate = clamp(requested, 0.1, cap);
@@ -217,9 +241,18 @@ export function buildPlan(opts: {
 
   const activityFactor =
     ACTIVITY_LEVELS.find((a) => a.id === activity)?.factor ?? 1.375;
+  const lactation = perinatal === "breastfeeding" ? LACTATION_KCAL : 0;
   const tdeeNow = round(
-    bmrMifflinStJeor({ weightKg: currentKg, heightCm, age, sex }) * activityFactor,
+    bmrMifflinStJeor({ weightKg: currentKg, heightCm, age, sex }) * activityFactor + lactation,
   );
+
+  if (perinatal === "breastfeeding") {
+    warnings.push({
+      id: "breastfeeding",
+      severity: "caution",
+      text: `Your daily burn includes an extra ${LACTATION_KCAL} kcal for breastfeeding, and the pace is held to ${MAX_LOSS_KG_PER_WEEK_LACTATING} kg a week at most. UK guidance is clear that losing weight gradually does not affect the quantity or quality of your milk, so a modest deficit is fine; a large one while nursing is not. Worth mentioning to your health visitor or GP.`,
+    });
+  }
 
   const dailyDelta = (effectiveRate * KCAL_PER_KG) / 7;
   let targetKcal = round(direction === "lose" ? tdeeNow - dailyDelta : tdeeNow + dailyDelta);
@@ -257,7 +290,8 @@ export function buildPlan(opts: {
   let weeksToGoal: number | null = null;
 
   for (let week = 1; week <= 260; week += 1) {
-    const tdee = bmrMifflinStJeor({ weightKg: weight, heightCm, age, sex }) * activityFactor;
+    const tdee =
+      bmrMifflinStJeor({ weightKg: weight, heightCm, age, sex }) * activityFactor + lactation;
     const deltaPerDay = targetKcal - tdee;
     const weeklyChange = (deltaPerDay * 7) / KCAL_PER_KG;
 

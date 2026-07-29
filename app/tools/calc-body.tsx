@@ -15,6 +15,7 @@ import {
   type ActivityId,
   type GoalId,
   type ProteinGoal,
+  type PerinatalStatus,
 } from "@/lib/tool-math";
 import {
   Field,
@@ -35,6 +36,17 @@ const SEXES = [
 const UNITS = [
   { id: "metric" as const, label: "Metric", detail: "cm / kg" },
   { id: "imperial" as const, label: "Imperial", detail: "in / lb" },
+];
+
+/**
+ * Asked of everyone rather than only when Female is selected. The cost is one
+ * extra field; the benefit is that nobody who is pregnant slips past it
+ * because of how they answered the sex question.
+ */
+export const PERINATAL_OPTIONS = [
+  { id: "none" as PerinatalStatus, label: "Neither", detail: "Not pregnant or breastfeeding" },
+  { id: "pregnant" as PerinatalStatus, label: "Pregnant", detail: "No targets will be set" },
+  { id: "breastfeeding" as PerinatalStatus, label: "Breastfeeding", detail: "Adds the extra energy you need" },
 ];
 
 type UnitSystem = "metric" | "imperial";
@@ -197,6 +209,7 @@ export function EnergyMacrosTool() {
   const [height, setHeight] = useState("");
   const [activity, setActivity] = useState<ActivityId>("moderate");
   const [goal, setGoal] = useState<GoalId>("maintain");
+  const [perinatal, setPerinatal] = useState<PerinatalStatus>("none");
 
   const ageN = num(age);
   const weightRaw = num(weight);
@@ -223,9 +236,10 @@ export function EnergyMacrosTool() {
             sex,
             activity,
             goal,
+            perinatal,
           })
         : null,
-    [ready, weightKg, heightCm, ageN, sex, activity, goal],
+    [ready, weightKg, heightCm, ageN, sex, activity, goal, perinatal],
   );
 
   return (
@@ -270,6 +284,17 @@ export function EnergyMacrosTool() {
             value={goal}
             onChange={setGoal}
             ariaLabel="Goal"
+          />
+        </Field>
+        <Field
+          label="Pregnant or breastfeeding?"
+          hint="This changes the answer materially, so the tool asks rather than assumes."
+        >
+          <Segmented
+            options={PERINATAL_OPTIONS}
+            value={perinatal}
+            onChange={setPerinatal}
+            ariaLabel="Pregnant or breastfeeding"
           />
         </Field>
       </form>

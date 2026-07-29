@@ -2,8 +2,16 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { inToCm, lbToKg, round, type Sex, type ActivityId } from "@/lib/tool-math";
+import {
+  inToCm,
+  lbToKg,
+  round,
+  type Sex,
+  type ActivityId,
+  type PerinatalStatus,
+} from "@/lib/tool-math";
 import { ACTIVITY_LEVELS } from "@/lib/tool-math";
+import { PERINATAL_OPTIONS } from "./calc-body";
 import {
   calculateBmi,
   BMI_CAVEATS,
@@ -212,6 +220,7 @@ export function MealPlannerTool() {
   const [goal, setGoal] = useState("");
   const [activity, setActivity] = useState<ActivityId>("light");
   const [rate, setRate] = useState("0.5");
+  const [perinatal, setPerinatal] = useState<PerinatalStatus>("none");
 
   const toKg = (v: number | null) =>
     v === null ? null : units === "metric" ? v : lbToKg(v);
@@ -243,9 +252,10 @@ export function MealPlannerTool() {
             goalKg: goalKg!,
             activity,
             rateKgPerWeek: Number(rate),
+            perinatal,
           })
         : null,
-    [ready, sex, ageN, heightCm, currentKg, goalKg, activity, rate],
+    [ready, sex, ageN, heightCm, currentKg, goalKg, activity, rate, perinatal],
   );
 
   const fmtW = (kg: number) =>
@@ -297,6 +307,17 @@ export function MealPlannerTool() {
         </Field>
         <Field label="Pace" hint="Slower loss preserves more muscle and is easier to hold onto.">
           <Segmented options={RATES} value={rate} onChange={setRate} ariaLabel="Pace" />
+        </Field>
+        <Field
+          label="Pregnant or breastfeeding?"
+          hint="This changes the answer materially, so the tool asks rather than assumes."
+        >
+          <Segmented
+            options={PERINATAL_OPTIONS}
+            value={perinatal}
+            onChange={setPerinatal}
+            ariaLabel="Pregnant or breastfeeding"
+          />
         </Field>
       </form>
 

@@ -375,11 +375,35 @@ export const GOALS: { id: GoalId; label: string; detail: string; adjust: number 
  */
 export const ENERGY_FLOOR: Record<Sex, number> = { male: 1500, female: 1200 };
 
+/**
+ * Pregnancy and breastfeeding need different handling, and conflating them
+ * would state something false.
+ *
+ * Pregnancy: intentional weight loss is not recommended, and the prediction
+ * equations here are not validated in pregnancy, so the tools refuse.
+ *
+ * Breastfeeding: UK guidance is explicit that gradual weight loss does not
+ * affect the quantity or quality of breast milk, so refusing would be both
+ * over-cautious and misleading. Instead the energy requirement rises and the
+ * pace is held to gradual.
+ */
+export type PerinatalStatus = "none" | "pregnant" | "breastfeeding";
+
+/**
+ * Additional daily energy while breastfeeding. Guidance gives 330-400 kcal
+ * for a well-nourished mother; we use the top of that range, because while
+ * nursing the safer error is eating a little too much rather than too little.
+ */
+export const LACTATION_KCAL = 400;
+
+export const PERINATAL_BLOCK_MESSAGE =
+  "This calculator will not set targets during pregnancy. Intentional weight loss is not advised in pregnancy, energy needs change as it progresses, and the equation behind this tool is not validated in pregnant women. Your midwife or maternity team can give you advice that accounts for your stage and your history, which no calculator can do.";
+
 export type EnergyWarning = { id: string; severity: "info" | "caution"; text: string };
 
 export type EnergyResult = {
   /** Set when the tool refuses to return a target at all. */
-  blocked: "under-18" | "underweight-deficit" | null;
+  blocked: "under-18" | "underweight-deficit" | "pregnant" | null;
   blockedMessage?: string;
   bmr: number;
   tdee: number;
@@ -400,14 +424,17 @@ export function energyAndMacros(opts: {
   sex: Sex;
   activity: ActivityId;
   goal: GoalId;
+  perinatal?: PerinatalStatus;
 }): EnergyResult {
   const warnings: EnergyWarning[] = [];
+  const perinatal = opts.perinatal ?? "none";
   const metres = opts.heightCm / 100;
   const bmi = round(opts.weightKg / (metres * metres), 1);
 
   const bmr = bmrMifflinStJeor(opts);
   const factor = ACTIVITY_LEVELS.find((a) => a.id === opts.activity)?.factor ?? 1.375;
-  const tdee = round(bmr * factor);
+  const lactation = perinatal === "breastfeeding" ? LACTATION_KCAL : 0;
+  const tdee = round(bmr * factor + lactation);
 
   const empty = {
     bmr,
@@ -421,6 +448,10 @@ export function energyAndMacros(opts: {
     proteinBasis: "current bodyweight" as const,
     warnings,
   };
+
+  if (perinatal === "pregnant") {
+    return { ...empty, blocked: "pregnant", blockedMessage: PERINATAL_BLOCK_MESSAGE };
+  }
 
   // Prediction equations for resting metabolism are validated in adults.
   if (opts.age < 18) {
@@ -483,6 +514,14 @@ export function energyAndMacros(opts: {
   }
 
   const carbG = round(Math.max((target - proteinG * 4 - fatG * 9) / 4, 0));
+
+  if (perinatal === "breastfeeding") {
+    warnings.push({
+      id: "breastfeeding",
+      severity: "caution",
+      text: `Your daily figure includes an extra ${LACTATION_KCAL} kcal for breastfeeding, the upper end of the 330 to 400 kcal guidance gives for a well-nourished mother. UK guidance is clear that losing weight gradually does not affect the quantity or quality of your milk, so a modest deficit is not a problem, but a large one is a bad idea while nursing. Keep it slow, and raise it with your health visitor or GP if you are unsure.`,
+    });
+  }
 
   if (opts.age >= 65) {
     warnings.push({
