@@ -3993,81 +3993,138 @@ a {
   line-height: 1.72;
 }
 
-/* ---------- Hub index ---------- */
+/* ---------- Hub index: grid cards ---------- */
 
 .tools-index {
-  padding: 72px 0 24px;
+  padding: 64px 0 24px;
 }
 
 .tools-group {
-  margin-bottom: 64px;
+  margin-bottom: 72px;
 }
 
-.tools-group ul {
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
   margin: 0;
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--line);
+  background: var(--line);
+  border: 1px solid var(--line);
 }
 
-.tools-group li {
-  border-bottom: 1px solid var(--line);
+.tools-grid > li {
+  background: var(--paper-bright);
 }
 
-.tools-group a {
-  display: grid;
-  grid-template-columns: 56px 1fr 28px;
-  gap: 24px;
-  align-items: baseline;
-  padding: 30px 8px;
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   color: inherit;
   text-decoration: none;
-  transition: background 260ms ease, padding 260ms ease;
 }
 
-.tools-number {
+.tool-card-thumb {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: #000;
+}
+
+.tool-card-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 700ms ease;
+}
+
+.tool-card-index {
+  position: absolute;
+  top: 14px;
+  left: 14px;
   color: var(--signal);
   font-family: var(--font-geist-mono), monospace;
   font-size: 9px;
+  font-style: normal;
   letter-spacing: 0.08em;
 }
 
-.tools-body b {
+.tool-card-body {
   display: block;
-  font-size: clamp(1.5rem, 2.3vw, 2.1rem);
-  font-weight: 520;
-  letter-spacing: -0.04em;
-  line-height: 1.06;
+  flex: 1 1 auto;
+  padding: 22px 22px 0;
 }
 
-.tools-body em {
+.tool-card-body b {
   display: block;
-  max-width: 62ch;
+  font-size: clamp(1.25rem, 1.7vw, 1.6rem);
+  font-weight: 520;
+  letter-spacing: -0.038em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.tool-card-body em {
+  display: block;
   margin-top: 12px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
   font-style: normal;
-  line-height: 1.65;
+  line-height: 1.62;
 }
 
-.tools-arrow {
-  justify-self: end;
+.tool-card-foot {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 16px 22px 20px;
+}
+
+.tool-card-foot span {
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tool-card-foot i {
   color: var(--muted);
   font-size: 13px;
-  transition: color 220ms ease, transform 260ms ease;
+  font-style: normal;
+  transition:
+    color 220ms ease,
+    transform 260ms ease;
 }
 
-.tools-group a:hover,
-.tools-group a:focus-visible {
-  padding-left: 20px;
-  background: var(--paper);
-  outline: none;
+.tool-card:hover .tool-card-thumb img,
+.tool-card:focus-visible .tool-card-thumb img {
+  filter: contrast(1.06) brightness(1.08);
+  transform: scale(1.045);
 }
 
-.tools-group a:hover .tools-arrow,
-.tools-group a:focus-visible .tools-arrow {
+.tool-card:hover .tool-card-body b,
+.tool-card:focus-visible .tool-card-body b {
+  color: var(--signal);
+}
+
+.tool-card:hover .tool-card-foot i,
+.tool-card:focus-visible .tool-card-foot i {
   color: var(--signal);
   transform: translate(3px, -3px);
+}
+
+.tool-card:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: -2px;
 }
 
 /* ---------- Hub standard band ---------- */
@@ -4178,6 +4235,95 @@ a {
 .tool-related a:hover {
   border-color: var(--ink);
   background: var(--paper);
+}
+
+/* ---------- Tool brief: what you get ---------- */
+
+.tool-brief {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 56px;
+  padding: 48px 0 0;
+}
+
+.tool-brief-lede > p:not(.tools-group-label) {
+  max-width: 44ch;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.68;
+}
+
+.tool-brief-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  margin: 24px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.tool-brief-facts dt {
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tool-brief-facts dd {
+  max-width: 30ch;
+  margin: 7px 0 0;
+  font-size: 13.5px;
+  font-weight: 480;
+  line-height: 1.5;
+}
+
+.tool-brief-get {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tool-brief-get li {
+  position: relative;
+  padding: 0 0 12px 20px;
+  color: var(--ink);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.tool-brief-get li::before {
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 7px;
+  height: 1px;
+  background: var(--signal);
+  content: "";
+}
+
+.tool-brief-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.tool-brief-steps li {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 10px;
+  padding-bottom: 12px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.tool-brief-steps li span {
+  color: var(--signal);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
 }
 
 /* ---------- Console layout ---------- */
@@ -4575,6 +4721,118 @@ a {
   border-bottom: 1px solid var(--signal);
 }
 
+/* ---------- BMI scale, meals, milestones, blocked ---------- */
+
+.tool-scale {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+}
+
+.tool-scale span {
+  background: rgba(14, 14, 14, 0.16);
+  transition: background 240ms ease;
+}
+
+.tool-scale span.is-active {
+  background: var(--signal);
+}
+
+.tool-meals ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.tool-meals li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tool-meals li > div {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.tool-meals li b {
+  font-size: 14px;
+  font-weight: 560;
+}
+
+.tool-meals li i {
+  color: var(--signal);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  font-style: normal;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.tool-meals li p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.62;
+}
+
+.tool-milestones ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.tool-milestones li {
+  display: grid;
+  gap: 5px;
+  padding: 12px 10px;
+  background: var(--paper);
+}
+
+.tool-milestones li span {
+  color: var(--muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 8px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.tool-milestones li b {
+  font-size: 15px;
+  font-weight: 520;
+  letter-spacing: -0.025em;
+}
+
+.tool-blocked {
+  padding: 26px;
+  border-left: 2px solid var(--signal);
+  background: var(--paper-bright);
+}
+
+.tool-blocked span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--signal);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.tool-blocked p {
+  max-width: 52ch;
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.68;
+}
+
 /* ---------- Bedtimes ---------- */
 
 .tool-bedtimes ul {
@@ -4747,11 +5005,18 @@ a {
 
 /* ---------- Responsive ---------- */
 
+@media (max-width: 1100px) {
+  .tools-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 1000px) {
   .tools-hero-grid,
   .tool-hero-grid,
   .tools-standard,
-  .tool-meta {
+  .tool-meta,
+  .tool-brief {
     grid-template-columns: 1fr;
     gap: 40px;
   }
@@ -4804,8 +5069,11 @@ a {
     border-bottom: 0;
   }
 
-  .tools-group a {
-    grid-template-columns: 32px 1fr 20px;
-    gap: 14px;
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tool-brief {
+    gap: 32px;
   }
 }

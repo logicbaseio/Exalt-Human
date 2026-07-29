@@ -65,6 +65,48 @@ export default async function ToolPage({ params }: ToolPageProps) {
         </div>
       </section>
 
+      <section className="tool-brief shell" aria-label="About this tool">
+        <div className="tool-brief-lede">
+          <p className="tools-group-label">What this tool is</p>
+          <p>{tool.explainer.whatItIs}</p>
+          <dl className="tool-brief-facts">
+            <div>
+              <dt>Takes</dt>
+              <dd>{tool.explainer.timeNeeded}</dd>
+            </div>
+            <div>
+              <dt>You need</dt>
+              <dd>
+                {tool.explainer.whatYouNeed.length
+                  ? tool.explainer.whatYouNeed.join(", ")
+                  : "Nothing but your details"}
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className="tool-brief-col">
+          <p className="tools-group-label">What you get</p>
+          <ul className="tool-brief-get">
+            {tool.explainer.whatYouGet.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="tool-brief-col">
+          <p className="tools-group-label">How to use it</p>
+          <ol className="tool-brief-steps">
+            {tool.explainer.howToUse.map((step, index) => (
+              <li key={step}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                {step}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
       <section className="tool-console shell">
         <ToolRunner slug={tool.slug} />
       </section>

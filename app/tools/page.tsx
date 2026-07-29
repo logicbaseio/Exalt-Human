@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { TOOLS, TOOL_CATEGORIES } from "@/lib/tools";
 import { ToolsHeader, ToolsFooter, MedicalNotice } from "./chrome";
@@ -52,19 +53,29 @@ export default function ToolsPage() {
           return (
             <div className="tools-group" key={category}>
               <p className="tools-group-label">{category}</p>
-              <ul>
+              <ul className="tools-grid">
                 {group.map((tool, index) => (
                   <li key={tool.slug}>
-                    <Link href={`/tools/${tool.slug}`}>
-                      <span className="tools-number">
-                        {String(index + 1).padStart(2, "0")}
+                    <Link className="tool-card" href={`/tools/${tool.slug}`}>
+                      <span className="tool-card-thumb">
+                        <Image
+                          src={tool.thumb}
+                          alt={tool.thumbAlt}
+                          width={900}
+                          height={900}
+                          sizes="(max-width: 720px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                        />
+                        <i className="tool-card-index" aria-hidden="true">
+                          {String(index + 1).padStart(2, "0")}
+                        </i>
                       </span>
-                      <span className="tools-body">
+                      <span className="tool-card-body">
                         <b>{tool.name}</b>
                         <em>{tool.deck}</em>
                       </span>
-                      <span className="tools-arrow" aria-hidden="true">
-                        ↗
+                      <span className="tool-card-foot">
+                        <span>{tool.explainer.timeNeeded}</span>
+                        <i aria-hidden="true">↗</i>
                       </span>
                     </Link>
                   </li>

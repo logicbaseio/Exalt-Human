@@ -7,6 +7,7 @@ import {
 } from "../calc-longevity";
 import { WaistHeightTool, EnergyMacrosTool, ProteinTool } from "../calc-body";
 import { SleepTool } from "../calc-sleep";
+import { BmiTool, MealPlannerTool } from "../calc-plan";
 
 /** Maps a tool slug to its interactive component. */
 export function ToolRunner({ slug }: { slug: string }) {
@@ -25,6 +26,10 @@ export function ToolRunner({ slug }: { slug: string }) {
       return <SleepTool />;
     case "lifestyle-age":
       return <LifestyleAgeTool />;
+    case "bmi-calculator":
+      return <BmiTool />;
+    case "meal-planner":
+      return <MealPlannerTool />;
     default:
       return null;
   }
