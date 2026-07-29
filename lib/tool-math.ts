@@ -55,46 +55,52 @@ export const inToCm = (inches: number) => inches * CM_PER_IN;
 /* ------------------------------------------------------------------ *
  * 1. Grip strength percentile
  *
- * Normative means/SDs approximated from pooled published norms, principally
- * Dodds et al. 2014 (PLoS ONE, twelve British studies, n=49,964) and NHANES
- * 2011-2014 hand-grip normative data. Values are rounded reference points,
- * not exact study centiles: the tool reports an approximate percentile band.
+ * Reference values are the published centiles from Dodds et al. 2014
+ * (PLoS ONE, twelve British studies, n=49,964), a British general-population
+ * sample. See the table below for exactly which figures are published and
+ * which are interpolated.
  * ------------------------------------------------------------------ */
 
-type GripNorm = { minAge: number; mean: number; sd: number };
+/**
+ * `median` values are the published 50th centiles from Dodds et al. 2014
+ * (Table 2), 49,964 participants across twelve British studies.
+ *
+ * `sd` is derived from that paper's published 10th and 90th centiles as
+ * (P90 - P10) / 2.563, the normal-distribution relationship. Those centiles
+ * are given at ages 20, 50 and 80; the intermediate values here are linearly
+ * interpolated between them, which is the one approximation in this table.
+ *
+ * Note the curve is not monotonic: grip rises from age 20 to a peak around
+ * 30, holds through midlife, then declines. An earlier version of this table
+ * was estimated rather than taken from the paper and was wrong in both
+ * directions, reading 7 kg too high at age 20 and about 5 kg too low from 30
+ * onward.
+ */
+type GripNorm = { age: number; median: number; sd: number };
 
 const GRIP_NORMS: Record<Sex, GripNorm[]> = {
   male: [
-    { minAge: 20, mean: 47.0, sd: 9.5 },
-    { minAge: 25, mean: 48.5, sd: 9.5 },
-    { minAge: 30, mean: 49.0, sd: 9.5 },
-    { minAge: 35, mean: 48.5, sd: 9.5 },
-    { minAge: 40, mean: 47.5, sd: 9.0 },
-    { minAge: 45, mean: 46.0, sd: 9.0 },
-    { minAge: 50, mean: 44.0, sd: 9.0 },
-    { minAge: 55, mean: 42.0, sd: 8.5 },
-    { minAge: 60, mean: 39.5, sd: 8.5 },
-    { minAge: 65, mean: 37.0, sd: 8.0 },
-    { minAge: 70, mean: 34.0, sd: 8.0 },
-    { minAge: 75, mean: 31.0, sd: 7.5 },
-    { minAge: 80, mean: 27.0, sd: 7.5 },
+    { age: 20, median: 40, sd: 8.58 },
+    { age: 30, median: 51, sd: 8.97 },
+    { age: 40, median: 50, sd: 9.36 },
+    { age: 50, median: 48, sd: 9.75 },
+    { age: 60, median: 45, sd: 8.97 },
+    { age: 70, median: 39, sd: 8.19 },
+    { age: 80, median: 32, sd: 7.41 },
   ],
   female: [
-    { minAge: 20, mean: 28.5, sd: 6.0 },
-    { minAge: 25, mean: 29.5, sd: 6.0 },
-    { minAge: 30, mean: 30.0, sd: 6.0 },
-    { minAge: 35, mean: 29.5, sd: 6.0 },
-    { minAge: 40, mean: 29.0, sd: 5.5 },
-    { minAge: 45, mean: 28.0, sd: 5.5 },
-    { minAge: 50, mean: 27.0, sd: 5.5 },
-    { minAge: 55, mean: 25.5, sd: 5.5 },
-    { minAge: 60, mean: 24.0, sd: 5.0 },
-    { minAge: 65, mean: 22.5, sd: 5.0 },
-    { minAge: 70, mean: 21.0, sd: 5.0 },
-    { minAge: 75, mean: 19.0, sd: 4.5 },
-    { minAge: 80, mean: 16.5, sd: 4.5 },
+    { age: 20, median: 28, sd: 5.85 },
+    { age: 30, median: 31, sd: 5.98 },
+    { age: 40, median: 31, sd: 6.11 },
+    { age: 50, median: 29, sd: 6.24 },
+    { age: 60, median: 27, sd: 5.85 },
+    { age: 70, median: 24, sd: 5.46 },
+    { age: 80, median: 19, sd: 5.07 },
   ],
 };
+
+/** Age at which grip peaks, per Dodds et al. Used for the strength-age read. */
+const GRIP_PEAK_AGE = 30;
 
 /**
  * Clinical low-strength cut-points for probable sarcopenia.
@@ -102,11 +108,29 @@ const GRIP_NORMS: Record<Sex, GripNorm[]> = {
  */
 export const SARCOPENIA_CUTOFF: Record<Sex, number> = { male: 27, female: 16 };
 
-function gripNormFor(sex: Sex, age: number): GripNorm {
+/**
+ * Linear interpolation between the published decade anchors, so a 44-year-old
+ * is not read against the same figure as a 40-year-old. The source presents
+ * smooth centile curves, so interpolating is closer to it than stepping.
+ */
+function gripNormFor(sex: Sex, age: number): { median: number; sd: number } {
   const table = GRIP_NORMS[sex];
-  let norm = table[0];
-  for (const row of table) if (age >= row.minAge) norm = row;
-  return norm;
+  if (age <= table[0].age) return { median: table[0].median, sd: table[0].sd };
+  const last = table[table.length - 1];
+  if (age >= last.age) return { median: last.median, sd: last.sd };
+
+  for (let i = 0; i < table.length - 1; i += 1) {
+    const a = table[i];
+    const b = table[i + 1];
+    if (age >= a.age && age <= b.age) {
+      const t = (age - a.age) / (b.age - a.age);
+      return {
+        median: a.median + t * (b.median - a.median),
+        sd: a.sd + t * (b.sd - a.sd),
+      };
+    }
+  }
+  return { median: last.median, sd: last.sd };
 }
 
 export type GripResult = {
@@ -131,18 +155,22 @@ export function gripPercentile(
   sex: Sex,
 ): GripResult {
   const norm = gripNormFor(sex, age);
-  const z = (gripKg - norm.mean) / norm.sd;
+  const z = (gripKg - norm.median) / norm.sd;
   const percentile = zToPercentile(z);
 
-  // "Strength age": the youngest age band whose median this grip still meets.
-  const table = GRIP_NORMS[sex];
+  // "Strength age": the oldest age at which this grip is still the median.
+  // Only the declining half of the curve is searched, from the peak onward:
+  // grip rises from 20 to 30, so the rising half would match a second, much
+  // younger age and make the figure meaningless.
+  const table = GRIP_NORMS[sex].filter((r) => r.age >= GRIP_PEAK_AGE);
   let strengthAge: number | null = null;
   for (const row of table) {
-    if (gripKg >= row.mean) {
-      strengthAge = row.minAge;
+    if (gripKg >= row.median) {
+      strengthAge = row.age;
       break;
     }
   }
+  // Stronger than the peak median, or weaker than the oldest band.
   if (strengthAge === null) strengthAge = 85;
 
   // Rounded to the nearest 5 and given open-ended top and bottom labels: the
@@ -155,7 +183,7 @@ export function gripPercentile(
     percentile: round(percentile),
     percentileLabel,
     z: round(z, 2),
-    ageMean: norm.mean,
+    ageMean: round(norm.median, 1),
     strengthAge,
     belowClinicalCutoff: gripKg < SARCOPENIA_CUTOFF[sex],
     band:
