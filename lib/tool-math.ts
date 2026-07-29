@@ -221,26 +221,41 @@ export function vo2FromCooper(meters: number): number {
 export const estimatedMaxHr = (age: number) => round(208 - 0.7 * age);
 
 /**
- * Approximate VO2max reference means by age and sex, pooled from published
- * cardiorespiratory-fitness normative data (e.g. FRIEND registry percentiles).
- * Used only to place a result in context, not as a clinical standard.
+ * VO2max reference values from the Fitness Registry and the Importance of
+ * Exercise National Database (FRIEND), maximal treadmill cardiopulmonary
+ * exercise testing, adults aged 20-79 without cardiovascular disease.
+ *
+ * The published 25th, 50th and 75th percentiles are stored directly and a
+ * result is placed by interpolating between them, rather than by assuming a
+ * normal distribution. VO2max is mildly right-skewed, so a symmetric model
+ * cannot reproduce both quartiles: fitting one throws the other out by
+ * several percentile points. Interpolating the real anchors reproduces the
+ * published values exactly.
+ *
+ * This replaced an earlier estimated table that sat 3 to 5 ml/kg/min below
+ * FRIEND and so flattered every user's percentile.
+ *
+ * Caveat carried into the UI: FRIEND is a US population referred for
+ * exercise testing, so it is not a perfect general-population sample.
  */
-const VO2_NORMS: Record<Sex, { minAge: number; mean: number; sd: number }[]> = {
+type Vo2Norm = { minAge: number; p25: number; p50: number; p75: number };
+
+const VO2_NORMS: Record<Sex, Vo2Norm[]> = {
   male: [
-    { minAge: 20, mean: 45.0, sd: 8.5 },
-    { minAge: 30, mean: 42.5, sd: 8.5 },
-    { minAge: 40, mean: 39.0, sd: 8.0 },
-    { minAge: 50, mean: 35.5, sd: 7.5 },
-    { minAge: 60, mean: 31.5, sd: 7.0 },
-    { minAge: 70, mean: 27.5, sd: 6.5 },
+    { minAge: 20, p25: 40.1, p50: 48.0, p75: 55.2 },
+    { minAge: 30, p25: 35.9, p50: 42.4, p75: 49.2 },
+    { minAge: 40, p25: 31.9, p50: 37.8, p75: 45.0 },
+    { minAge: 50, p25: 27.1, p50: 32.6, p75: 39.7 },
+    { minAge: 60, p25: 23.7, p50: 28.2, p75: 34.5 },
+    { minAge: 70, p25: 20.4, p50: 24.4, p75: 30.4 },
   ],
   female: [
-    { minAge: 20, mean: 38.0, sd: 7.5 },
-    { minAge: 30, mean: 35.5, sd: 7.0 },
-    { minAge: 40, mean: 32.5, sd: 7.0 },
-    { minAge: 50, mean: 29.5, sd: 6.5 },
-    { minAge: 60, mean: 26.0, sd: 6.0 },
-    { minAge: 70, mean: 22.5, sd: 5.5 },
+    { minAge: 20, p25: 30.5, p50: 37.6, p75: 44.7 },
+    { minAge: 30, p25: 25.3, p50: 30.2, p75: 36.1 },
+    { minAge: 40, p25: 22.1, p50: 26.7, p75: 32.4 },
+    { minAge: 50, p25: 19.9, p50: 23.4, p75: 27.6 },
+    { minAge: 60, p25: 17.2, p50: 20.0, p75: 23.8 },
+    { minAge: 70, p25: 15.6, p50: 18.3, p75: 20.8 },
   ],
 };
 
@@ -248,18 +263,36 @@ export function vo2Percentile(vo2: number, age: number, sex: Sex) {
   const table = VO2_NORMS[sex];
   let norm = table[0];
   for (const row of table) if (age >= row.minAge) norm = row;
-  const z = (vo2 - norm.mean) / norm.sd;
+
+  // Piecewise-linear through the published quartiles, with the outer segments'
+  // slopes extended beyond them and the result held inside 1 to 99.
+  const lowerSlope = 25 / (norm.p50 - norm.p25);
+  const upperSlope = 25 / (norm.p75 - norm.p50);
+  let percentile: number;
+  if (vo2 <= norm.p25) {
+    percentile = 25 - (norm.p25 - vo2) * lowerSlope;
+  } else if (vo2 <= norm.p50) {
+    percentile = 25 + (vo2 - norm.p25) * lowerSlope;
+  } else if (vo2 <= norm.p75) {
+    percentile = 50 + (vo2 - norm.p50) * upperSlope;
+  } else {
+    percentile = 75 + (vo2 - norm.p75) * upperSlope;
+  }
+  percentile = clamp(percentile, 1, 99);
+
   return {
-    percentile: round(zToPercentile(z)),
-    ageMean: norm.mean,
+    percentile: round(percentile),
+    /** The published 50th percentile for this age band. */
+    ageMean: norm.p50,
+    quartiles: { p25: norm.p25, p75: norm.p75 },
     band:
-      vo2 >= norm.mean + norm.sd
-        ? "High"
-        : vo2 >= norm.mean - 0.5 * norm.sd
-          ? "Above average to average"
-          : vo2 >= norm.mean - norm.sd
-            ? "Below average"
-            : "Low",
+      vo2 >= norm.p75
+        ? "Above the 75th percentile"
+        : vo2 >= norm.p50
+          ? "Between the median and the 75th"
+          : vo2 >= norm.p25
+            ? "Between the 25th and the median"
+            : "Below the 25th percentile",
   };
 }
 

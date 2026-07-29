@@ -272,12 +272,16 @@ export function Vo2MaxTool() {
               value={vo2}
               unit="ml/kg/min"
               band={context.band}
-              caption={`Roughly the ${context.percentile}th percentile for your age and sex.`}
+              caption={`Roughly the ${context.percentile}th percentile for your age and sex, against measured laboratory values.`}
             />
             <PercentileBar percentile={context.percentile} lowLabel="Lower fitness" highLabel="Higher fitness" />
             <ResultStats
               stats={[
-                { label: "Age-group average", value: `${context.ageMean} ml/kg/min` },
+                {
+                  label: "Age-group median",
+                  value: `${context.ageMean} ml/kg/min`,
+                  note: `The middle half of your age group falls between ${context.quartiles.p25} and ${context.quartiles.p75}.`,
+                },
                 {
                   label: "Estimated max heart rate",
                   value: `${estimatedMaxHr(ageN!)} bpm`,
@@ -294,6 +298,13 @@ export function Vo2MaxTool() {
               Field estimates differ from laboratory testing, sometimes by
               several ml/kg/min. The trend in your own repeated results is more
               informative than the absolute number.
+            </ToolNote>
+            <ToolNote strength="Context">
+              Your percentile is read against the FRIEND registry, which holds
+              directly measured treadmill results from US adults without
+              cardiovascular disease. Those adults were referred for exercise
+              testing, so the reference group is not a perfect sample of the
+              general population, and it is US-based.
             </ToolNote>
           </>
         ) : null}

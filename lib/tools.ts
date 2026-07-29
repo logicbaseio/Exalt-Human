@@ -193,6 +193,13 @@ export const TOOLS: Tool[] = [
         year: "2001",
         href: "https://pubmed.ncbi.nlm.nih.gov/11153730/",
       },
+      {
+        title:
+          "Reference Standards for Cardiorespiratory Fitness Measured With Cardiopulmonary Exercise Testing: Data From the Fitness Registry and the Importance of Exercise National Database (FRIEND)",
+        source: "Mayo Clinic Proceedings",
+        year: "2015",
+        href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC4919021/",
+      },
     ],
   },
   {
