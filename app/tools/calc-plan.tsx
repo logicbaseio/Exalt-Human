@@ -23,6 +23,8 @@ import { buildPlan, formatDuration } from "@/lib/tool-plan";
 import {
   Field,
   NumberInput,
+  PairedInput,
+  BandChart,
   Segmented,
   ResultHero,
   ResultStats,
@@ -47,16 +49,34 @@ type UnitSystem = "metric" | "imperial";
  * BMI
  * ================================================================== */
 
+/** Renders a band's numeric bounds the way the categories are conventionally written. */
+function bandRange(min: number, max: number): string {
+  if (min <= 0) return `Below ${max.toFixed(1)}`;
+  if (max >= 999) return `${min.toFixed(1)} or greater`;
+  // Bands are [min, max), so the printed upper bound is the last value inside.
+  return `${min.toFixed(1)} to ${(max - 0.1).toFixed(1)}`;
+}
+
 export function BmiTool() {
   const [units, setUnits] = useState<UnitSystem>("metric");
   const [weight, setWeight] = useState("");
-  const [height, setHeight] = useState("");
+  const [heightCmRaw, setHeightCmRaw] = useState("");
+  const [feet, setFeet] = useState("");
+  const [inches, setInches] = useState("");
   const [standard, setStandard] = useState<BmiStandard>("who");
 
   const weightRaw = num(weight);
-  const heightRaw = num(height);
   const weightKg = weightRaw === null ? null : units === "metric" ? weightRaw : lbToKg(weightRaw);
-  const heightCm = heightRaw === null ? null : units === "metric" ? heightRaw : inToCm(heightRaw);
+
+  const ft = num(feet);
+  const inch = num(inches);
+  const heightCm =
+    units === "metric"
+      ? num(heightCmRaw)
+      : ft === null && inch === null
+        ? null
+        : inToCm((ft ?? 0) * 12 + (inch ?? 0));
+
   const ready = weightKg !== null && heightCm !== null && weightKg > 20 && heightCm > 100;
 
   const result = useMemo(
@@ -73,13 +93,20 @@ export function BmiTool() {
         <Field label="Units">
           <Segmented options={UNITS} value={units} onChange={setUnits} ariaLabel="Units" />
         </Field>
-        <Field label="Height" suffix={units === "metric" ? "cm" : "in"}>
-          <NumberInput
-            value={height}
-            onChange={setHeight}
-            step={0.5}
-            placeholder={units === "metric" ? "178" : "70"}
-          />
+        <Field label="Height" suffix={units === "metric" ? "cm" : "ft / in"}>
+          {units === "metric" ? (
+            <NumberInput
+              value={heightCmRaw}
+              onChange={setHeightCmRaw}
+              step={0.5}
+              placeholder="178"
+            />
+          ) : (
+            <PairedInput
+              first={{ value: feet, onChange: setFeet, unit: "feet", placeholder: "5", max: 8 }}
+              second={{ value: inches, onChange: setInches, unit: "inches", placeholder: "11", max: 11.5 }}
+            />
+          )}
         </Field>
         <Field label="Weight" suffix={units === "metric" ? "kg" : "lb"}>
           <NumberInput
@@ -117,21 +144,18 @@ export function BmiTool() {
               caption={result.note}
             />
 
-            <div className="tool-scale" aria-hidden="true">
-              {result.bands.map((band) => {
-                const width = Math.min(band.max, 45) - Math.max(band.min, 12);
-                if (width <= 0) return null;
-                const active = band.label === result.category;
-                return (
-                  <span
-                    key={band.label}
-                    className={active ? "is-active" : undefined}
-                    style={{ flexGrow: width }}
-                    title={band.label}
-                  />
-                );
-              })}
-            </div>
+            <BandChart
+              rows={result.bands.map((band) => ({
+                label: band.label,
+                range: bandRange(band.min, band.max),
+              }))}
+              activeIndex={result.bands.findIndex((b) => b.label === result.category)}
+              caption={
+                result.standard === "lower"
+                  ? "Lower thresholds, per NICE guideline NG246."
+                  : "Standard WHO and CDC adult categories."
+              }
+            />
 
             <ResultStats
               stats={[

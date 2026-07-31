@@ -60,6 +60,94 @@ export function NumberInput({
   );
 }
 
+/**
+ * Two inputs that read as one measurement, for heights in feet and inches.
+ * Entering 5 ft 11 in is how most people who use imperial actually know their
+ * height, so asking for 71 inches is a needless conversion for them to do.
+ */
+export function PairedInput({
+  first,
+  second,
+}: {
+  first: { value: string; onChange: (next: string) => void; unit: string; placeholder?: string; max?: number };
+  second: { value: string; onChange: (next: string) => void; unit: string; placeholder?: string; max?: number };
+}) {
+  return (
+    <span className="tool-paired">
+      {[first, second].map((part, index) => (
+        <span key={part.unit}>
+          <input
+            className="tool-input"
+            type="number"
+            inputMode="decimal"
+            value={part.value}
+            min={0}
+            max={part.max}
+            step={index === 0 ? 1 : 0.5}
+            placeholder={part.placeholder}
+            aria-label={part.unit}
+            onChange={(event) => part.onChange(event.target.value)}
+          />
+          <i>{part.unit}</i>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/**
+ * The BMI band table, with a marker that slides to the band the reader lands
+ * in. The marker is one absolutely positioned element moved by row index
+ * rather than an icon re-rendered inside the active row, so crossing a
+ * boundary animates instead of jumping.
+ */
+export function BandChart({
+  rows,
+  activeIndex,
+  caption,
+}: {
+  rows: { label: string; range: string }[];
+  activeIndex: number;
+  caption?: string;
+}) {
+  return (
+    <div className="band-chart">
+      <div className="band-chart-head">
+        <span>Category</span>
+        <span>BMI range</span>
+      </div>
+      <div className="band-chart-rows">
+        {/*
+          The row index is written into the transform here rather than passed
+          to the stylesheet as a custom property. Transitioning a transform
+          that resolves through an unregistered custom property is not
+          reliable across engines, and an inline value sidesteps the question
+          entirely: each render emits a distinct transform, which is exactly
+          what the transition needs.
+        */}
+        <span
+          className="band-chart-marker"
+          aria-hidden="true"
+          style={{
+            transform: `translateY(calc(${Math.max(activeIndex, 0)} * var(--band-row-h)))`,
+          }}
+        />
+        {rows.map((row, index) => (
+          <div
+            key={row.label}
+            className={index === activeIndex ? "is-active" : undefined}
+            aria-current={index === activeIndex ? "true" : undefined}
+          >
+            <span>{row.label}</span>
+            <span>{row.range}</span>
+          </div>
+        ))}
+      </div>
+      {caption ? <p className="band-chart-caption">{caption}</p> : null}
+    </div>
+  );
+}
+
 export function Segmented<T extends string>({
   options,
   value,
